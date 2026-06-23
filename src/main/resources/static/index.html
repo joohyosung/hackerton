@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>대출알리오</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="/" aria-label="대출알리오 홈">
+                <img src="/assets/brand-mark.svg" alt="" class="brand-mark">
+                <span>대출알리오</span>
+            </a>
+            <div class="topbar-meta">
+                <span class="status-dot" aria-hidden="true"></span>
+                <span>서민대출상품 추천</span>
+            </div>
+        </header>
+
+        <main class="workspace">
+            <section class="search-panel" aria-labelledby="search-title">
+                <div class="panel-head">
+                    <p class="eyebrow">맞춤 조건</p>
+                    <h1 id="search-title">대출알리오</h1>
+                </div>
+
+                <form id="loan-form" class="loan-form">
+                    <label>
+                        <span>연령</span>
+                        <input id="age" name="age" type="number" min="19" max="100" value="32" required>
+                    </label>
+
+                    <label>
+                        <span>연소득</span>
+                        <div class="with-unit">
+                            <input id="annualIncome" name="annualIncome" type="number" min="0" value="3200" required>
+                            <em>만원</em>
+                        </div>
+                    </label>
+
+                    <label>
+                        <span>신용등급</span>
+                        <select id="creditGrade" name="creditGrade" required>
+                            <option value="1">1등급</option>
+                            <option value="2">2등급</option>
+                            <option value="3">3등급</option>
+                            <option value="4">4등급</option>
+                            <option value="5" selected>5등급</option>
+                            <option value="6">6등급</option>
+                            <option value="7">7등급</option>
+                            <option value="8">8등급</option>
+                            <option value="9">9등급</option>
+                            <option value="10">10등급</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>희망 금액</span>
+                        <div class="with-unit">
+                            <input id="loanAmount" name="loanAmount" type="number" min="0" value="1000" required>
+                            <em>만원</em>
+                        </div>
+                    </label>
+
+                    <label>
+                        <span>거주 지역</span>
+                        <select id="region" name="region" required>
+                            <option value="전국" selected>전국</option>
+                            <option value="서울">서울</option>
+                            <option value="경기">경기</option>
+                            <option value="인천">인천</option>
+                            <option value="강원">강원</option>
+                            <option value="충북">충북</option>
+                            <option value="충남">충남</option>
+                            <option value="전북">전북</option>
+                            <option value="전남">전남</option>
+                            <option value="경북">경북</option>
+                            <option value="경남">경남</option>
+                            <option value="부산">부산</option>
+                            <option value="대구">대구</option>
+                            <option value="광주">광주</option>
+                            <option value="대전">대전</option>
+                            <option value="울산">울산</option>
+                            <option value="세종">세종</option>
+                            <option value="제주">제주</option>
+                        </select>
+                    </label>
+
+                    <label class="wide">
+                        <span>대출 용도</span>
+                        <select id="purpose" name="purpose" required>
+                            <option value="생계" selected>생계</option>
+                            <option value="대환">대환</option>
+                            <option value="주거">주거</option>
+                            <option value="창업">창업</option>
+                            <option value="운영">운영</option>
+                            <option value="의료">의료</option>
+                            <option value="학자금">학자금</option>
+                        </select>
+                    </label>
+
+                    <button type="submit" class="primary-action">
+                        <span class="button-icon" aria-hidden="true">⌕</span>
+                        <span>추천 조회</span>
+                    </button>
+                </form>
+
+                <div class="mini-visual" aria-hidden="true">
+                    <div class="mini-visual-row strong"></div>
+                    <div class="mini-visual-row"></div>
+                    <div class="mini-visual-row short"></div>
+                    <div class="mini-chip">조건 비교</div>
+                </div>
+            </section>
+
+            <section class="result-panel" aria-labelledby="result-title">
+                <div class="result-head">
+                    <div>
+                        <p class="eyebrow">추천 결과</p>
+                        <h2 id="result-title">조건에 맞는 상품</h2>
+                    </div>
+                    <output id="result-count" class="result-count">0개</output>
+                </div>
+
+                <div id="message" class="message" role="status"></div>
+                <div id="results" class="results" aria-live="polite"></div>
+            </section>
+
+            <aside class="detail-panel" aria-labelledby="detail-title">
+                <div class="detail-empty" id="detail-empty">
+                    <img src="/assets/brand-mark.svg" alt="" class="empty-mark">
+                    <p>상품명을 선택하면 상세 조건을 볼 수 있습니다.</p>
+                </div>
+
+                <div id="detail-content" class="detail-content hidden">
+                    <p class="eyebrow">상품 상세</p>
+                    <h2 id="detail-title"></h2>
+                    <dl class="detail-list">
+                        <div>
+                            <dt>취급기관</dt>
+                            <dd id="detail-institution"></dd>
+                        </div>
+                        <div>
+                            <dt>대출한도</dt>
+                            <dd id="detail-limit"></dd>
+                        </div>
+                        <div>
+                            <dt>금리</dt>
+                            <dd id="detail-rate"></dd>
+                        </div>
+                        <div>
+                            <dt>용도</dt>
+                            <dd id="detail-purpose"></dd>
+                        </div>
+                        <div>
+                            <dt>기간</dt>
+                            <dd id="detail-period"></dd>
+                        </div>
+                        <div>
+                            <dt>대상</dt>
+                            <dd id="detail-target"></dd>
+                        </div>
+                        <div>
+                            <dt>지역</dt>
+                            <dd id="detail-region"></dd>
+                        </div>
+                    </dl>
+                    <p id="detail-summary" class="detail-summary"></p>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

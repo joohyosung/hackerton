@@ -1,0 +1,158 @@
+package com.kookmin.hackerton.loan.model;
+
+public class LoanProduct {
+
+    private String id;
+    private String name;
+    private String institution;
+    private String limitText;
+    private Long limitAmount;
+    private String rateType;
+    private String rateText;
+    private String purpose;
+    private String periodText;
+    private String target;
+    private String region;
+    private String summary;
+    private String sourceUrl;
+    private Integer minAge;
+    private Integer maxAge;
+    private Long maxAnnualIncome;
+    private Integer maxCreditGrade;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getInstitution() {
+        return institution;
+    }
+
+    public void setInstitution(String institution) {
+        this.institution = institution;
+    }
+
+    public String getLimitText() {
+        return limitText;
+    }
+
+    public void setLimitText(String limitText) {
+        this.limitText = limitText;
+    }
+
+    public Long getLimitAmount() {
+        return limitAmount;
+    }
+
+    public void setLimitAmount(Long limitAmount) {
+        this.limitAmount = limitAmount;
+    }
+
+    public String getRateType() {
+        return rateType;
+    }
+
+    public void setRateType(String rateType) {
+        this.rateType = rateType;
+    }
+
+    public String getRateText() {
+        return rateText;
+    }
+
+    public void setRateText(String rateText) {
+        this.rateText = rateText;
+    }
+
+    public String getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
+
+    public String getPeriodText() {
+        return periodText;
+    }
+
+    public void setPeriodText(String periodText) {
+        this.periodText = periodText;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public String getSourceUrl() {
+        return sourceUrl;
+    }
+
+    public void setSourceUrl(String sourceUrl) {
+        this.sourceUrl = sourceUrl;
+    }
+
+    public Integer getMinAge() {
+        return minAge;
+    }
+
+    public void setMinAge(Integer minAge) {
+        this.minAge = minAge;
+    }
+
+    public Integer getMaxAge() {
+        return maxAge;
+    }
+
+    public void setMaxAge(Integer maxAge) {
+        this.maxAge = maxAge;
+    }
+
+    public Long getMaxAnnualIncome() {
+        return maxAnnualIncome;
+    }
+
+    public void setMaxAnnualIncome(Long maxAnnualIncome) {
+        this.maxAnnualIncome = maxAnnualIncome;
+    }
+
+    public Integer getMaxCreditGrade() {
+        return maxCreditGrade;
+    }
+
+    public void setMaxCreditGrade(Integer maxCreditGrade) {
+        this.maxCreditGrade = maxCreditGrade;
+    }
+}
