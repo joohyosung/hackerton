@@ -180,6 +180,8 @@ function showDetail(item) {
   if (affordability) {
     detailFields.monthlyPayment.textContent = formatWon(affordability.estimatedMonthlyPayment);
     detailFields.dsr.textContent = `${percentText(affordability.dsr)} / 기준 ${percentText(affordability.dsrLimit)}`;
+    detailFields.calculationRate.textContent = `${percentText(affordability.calculationRate)} 적용`;
+    detailFields.calculationTerm.textContent = `${affordability.calculationTermYears || "확인 필요"}년`;
 
     if (affordability.mortgageEvaluationUsed) {
       detailFields.dti.textContent = `${percentText(affordability.dti)} / 기준 ${percentText(affordability.dtiLimit)}`;
@@ -195,6 +197,8 @@ function showDetail(item) {
     detailFields.dsr.textContent = "확인 필요";
     detailFields.dti.textContent = "확인 필요";
     detailFields.ltv.textContent = "확인 필요";
+    detailFields.calculationRate.textContent = "확인 필요";
+    detailFields.calculationTerm.textContent = "확인 필요";
     detailFields.possibleLimit.textContent = "확인 필요";
   }
 

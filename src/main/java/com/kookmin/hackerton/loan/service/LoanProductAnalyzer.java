@@ -167,16 +167,16 @@ public class LoanProductAnalyzer {
             return true;
         }
 
-        if (condition.contains("무주택")) {
-            return houseCount == 0;
+        if (condition.contains("2주택")) {
+            return houseCount <= 2;
         }
 
         if (condition.contains("1주택")) {
             return houseCount <= 1;
         }
 
-        if (condition.contains("2주택")) {
-            return houseCount <= 2;
+        if (condition.contains("무주택")) {
+            return houseCount == 0;
         }
 
         return true;
