@@ -34,6 +34,7 @@ API 인증키는 코드에 넣지 않고 환경변수로 관리합니다.
 ```bash
 set DATA_GO_KR_SERVICE_KEY=발급받은_API_키
 set LOAN_API_ENDPOINT=https://apis.data.go.kr/B553701/LoanProductSearchingInfo
+set LOAN_API_PATH=/LoanProductSearchingInfo/getLoanProductSearchingInfo
 mvn spring-boot:run
 ```
 
@@ -42,7 +43,14 @@ PowerShell에서는 다음처럼 설정할 수 있습니다.
 ```powershell
 $env:DATA_GO_KR_SERVICE_KEY="발급받은_API_키"
 $env:LOAN_API_ENDPOINT="https://apis.data.go.kr/B553701/LoanProductSearchingInfo"
+$env:LOAN_API_PATH="/LoanProductSearchingInfo/getLoanProductSearchingInfo"
 mvn spring-boot:run
 ```
 
-API 세부 경로가 변경되었거나 별도 operation path가 필요한 경우 `LOAN_API_ENDPOINT`만 해당 URL로 바꾸면 됩니다.
+API base URL이나 operation path가 변경되면 `LOAN_API_ENDPOINT`, `LOAN_API_PATH`를 각각 바꾸면 됩니다.
+
+## 데이터 CI/CD
+
+데이터 파이프라인은 GitHub Actions에서 빌드 검증, 샘플 XML 계약 검증, 실제 API 수집, JSON 정규화, artifact 저장을 수행합니다.
+
+자세한 운영 방법은 [docs/data-pipeline.md](docs/data-pipeline.md)를 확인하세요.

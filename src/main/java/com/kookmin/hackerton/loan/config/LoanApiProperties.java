@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class LoanApiProperties {
 
     private String endpoint = "https://apis.data.go.kr/B553701/LoanProductSearchingInfo";
+    private String path = "/LoanProductSearchingInfo/getLoanProductSearchingInfo";
     private String serviceKey = "";
     private int pageSize = 100;
     private boolean useSampleWhenUnavailable = true;
@@ -16,6 +17,14 @@ public class LoanApiProperties {
 
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public String getServiceKey() {

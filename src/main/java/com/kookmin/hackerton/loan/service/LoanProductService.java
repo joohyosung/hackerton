@@ -104,6 +104,7 @@ public class LoanProductService {
     private List<LoanProduct> fetchFromPublicApi() throws Exception {
         String xml = restTemplate.getForObject(
             UriComponentsBuilder.fromHttpUrl(properties.getEndpoint())
+                .path(properties.getPath())
                 .queryParam("serviceKey", properties.getServiceKey())
                 .queryParam("pageNo", 1)
                 .queryParam("numOfRows", properties.getPageSize())
@@ -150,18 +151,22 @@ public class LoanProductService {
 
     private LoanProduct toProduct(Element item, int index) {
         LoanProduct product = new LoanProduct();
-        product.setName(firstText(item, "finPrdNm", "lnPrdtNm", "loanProductName", "productName", "상품명"));
-        product.setInstitution(firstText(item, "ofrInstNm", "instNm", "handlingInst", "institution", "취급기관"));
+        product.setName(firstText(item, "finPrdNm", "loanProductName", "productName", "상품명"));
+        product.setInstitution(firstText(item, "hdlInst", "ofrInstNm", "hdlInstDtlVw", "instNm", "institution", "취급기관"));
         product.setLimitText(firstText(item, "lnLmt", "loanLimit", "limit", "대출한도"));
         product.setRateType(firstText(item, "irtCtg", "rateType", "금리구분"));
         product.setRateText(firstText(item, "irt", "interestRate", "rate", "금리"));
         product.setPurpose(firstText(item, "usge", "loanUse", "purpose", "자금용도"));
         product.setPeriodText(firstText(item, "maxTotLnTrm", "loanPeriod", "period", "총대출기간"));
-        product.setTarget(firstText(item, "trgt", "supportTarget", "target", "지원대상"));
-        product.setRegion(firstText(item, "rgn", "region", "area", "지역"));
-        product.setSummary(firstText(item, "finPrdDtlCn", "description", "summary", "상세내용"));
-        product.setSourceUrl(firstText(item, "url", "homepage", "link"));
+        product.setTarget(firstText(item, "trgt", "suprTgtDtlCond", "tgtFltr", "target", "지원대상"));
+        product.setRegion(firstText(item, "rsdArea", "rsdAreaPamtEqltIstm", "rgn", "region", "area", "지역"));
+        product.setSummary(summaryText(item));
+        product.setSourceUrl(firstText(item, "rltSite", "url", "homepage", "link"));
         product.setLimitAmount(parseMoney(product.getLimitText()));
+        product.setMinAge(inferMinAge(item));
+        product.setMaxAge(inferMaxAge(item));
+        product.setMaxAnnualIncome(parseMoney(firstText(item, "anin", "incm")));
+        product.setMaxCreditGrade(inferMaxCreditGrade(item));
 
         if (!StringUtils.hasText(product.getName())) {
             product.setName("대출 상품 " + (index + 1));
@@ -175,6 +180,34 @@ public class LoanProductService {
 
         product.setId(slug(product.getName() + "-" + product.getInstitution() + "-" + index));
         return product;
+    }
+
+    private String summaryText(Element item) {
+        List<String> parts = new ArrayList<String>();
+        addIfPresent(parts, firstText(item, "suprTgtDtlCond"));
+        addIfPresent(parts, firstText(item, "etcRefSbjc"));
+        addIfPresent(parts, firstText(item, "kinfaPrdEtc"));
+        addIfPresent(parts, firstText(item, "jnMthd"));
+        addIfPresent(parts, firstText(item, "rfrcCnpl"));
+
+        if (parts.isEmpty()) {
+            return firstText(item, "description", "summary", "상세내용");
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < parts.size(); i++) {
+            if (i > 0) {
+                builder.append(" ");
+            }
+            builder.append(parts.get(i));
+        }
+        return builder.toString();
+    }
+
+    private void addIfPresent(List<String> values, String value) {
+        if (StringUtils.hasText(value)) {
+            values.add(value);
+        }
     }
 
     private LoanRecommendation score(LoanProduct product, LoanSearchRequest request) {
@@ -253,6 +286,75 @@ public class LoanProductService {
         }
 
         return source.toLowerCase(Locale.KOREAN).contains(keyword.toLowerCase(Locale.KOREAN));
+    }
+
+    private Integer inferMinAge(Element item) {
+        if (isPositive(firstText(item, "age_60Abnml"))) {
+            return 60;
+        }
+        if (isPositive(firstText(item, "age_40Abnml"))) {
+            return 40;
+        }
+
+        String ageText = firstText(item, "age");
+        Matcher matcher = Pattern.compile("(\\d+)").matcher(ageText);
+        if (matcher.find()) {
+            return Integer.valueOf(matcher.group(1));
+        }
+
+        return null;
+    }
+
+    private Integer inferMaxAge(Element item) {
+        if (isPositive(firstText(item, "age_39Blw"))) {
+            return 39;
+        }
+        if (isPositive(firstText(item, "age_40Abnml"))) {
+            return 59;
+        }
+
+        String ageText = firstText(item, "age");
+        Matcher matcher = Pattern.compile("(\\d+)").matcher(ageText);
+        Integer max = null;
+        while (matcher.find()) {
+            max = Integer.valueOf(matcher.group(1));
+        }
+        return max;
+    }
+
+    private Integer inferMaxCreditGrade(Element item) {
+        if (isPositive(firstText(item, "crdtSc_6_0"))) {
+            return 10;
+        }
+        if (isPositive(firstText(item, "crdtSc_1_5"))) {
+            return 5;
+        }
+
+        int max = 0;
+        for (int grade = 1; grade <= 9; grade++) {
+            if (isPositive(firstText(item, "crdtSc_" + grade))) {
+                max = grade;
+            }
+        }
+
+        return max > 0 ? max : null;
+    }
+
+    private boolean isPositive(String value) {
+        if (!StringUtils.hasText(value)) {
+            return false;
+        }
+
+        String normalized = value.trim().toLowerCase(Locale.KOREAN);
+        return "y".equals(normalized)
+            || "yes".equals(normalized)
+            || "1".equals(normalized)
+            || "true".equals(normalized)
+            || "가능".equals(normalized)
+            || "대상".equals(normalized)
+            || "해당".equals(normalized)
+            || "○".equals(normalized)
+            || "o".equals(normalized);
     }
 
     private String firstText(Element item, String... names) {

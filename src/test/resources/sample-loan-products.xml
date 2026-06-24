@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+  <header>
+    <resultCode>00</resultCode>
+    <resultMsg>NORMAL SERVICE.</resultMsg>
+  </header>
+  <body>
+    <numOfRows>2</numOfRows>
+    <pageNo>1</pageNo>
+    <totalCount>2</totalCount>
+    <items>
+      <item>
+        <seq>1</seq>
+        <finPrdNm>근로자 햇살론</finPrdNm>
+        <hdlInst>상호금융, 저축은행</hdlInst>
+        <ofrInstNm>서민금융진흥원</ofrInstNm>
+        <instCtg>정책금융기관</instCtg>
+        <prdCtg>생계자금</prdCtg>
+        <lnLmt>최대 2,000만원</lnLmt>
+        <irt>연 11.5% 이하</irt>
+        <irtCtg>변동금리</irtCtg>
+        <usge>생계</usge>
+        <maxTotLnTrm>5</maxTotLnTrm>
+        <maxRdptTrm>5</maxRdptTrm>
+        <rdptMthd>원리금균등분할상환</rdptMthd>
+        <trgt>저소득 근로자</trgt>
+        <suprTgtDtlCond>재직 3개월 이상 근로자</suprTgtDtlCond>
+        <anin>연 4,500만원 이하</anin>
+        <crdtSc>6등급 이하</crdtSc>
+        <crdtSc_6_0>Y</crdtSc_6_0>
+        <age>만 19세 이상</age>
+        <age_40Abnml>Y</age_40Abnml>
+        <rsdArea>전국</rsdArea>
+        <jnMthd>취급기관 방문 또는 모바일 신청</jnMthd>
+        <rfrcCnpl>1397 서민금융콜센터</rfrcCnpl>
+        <rltSite>https://www.kinfa.or.kr</rltSite>
+      </item>
+      <item>
+        <seq>2</seq>
+        <finPrdNm>청년전용 버팀목 전세자금</finPrdNm>
+        <hdlInst>주택도시기금 수탁은행</hdlInst>
+        <ofrInstNm>주택도시기금</ofrInstNm>
+        <instCtg>정부기관</instCtg>
+        <prdCtg>주거자금</prdCtg>
+        <lnLmt>최대 2억원</lnLmt>
+        <irt>연 1.8%~2.7%</irt>
+        <irtCtg>고정 또는 변동</irtCtg>
+        <usge>주거</usge>
+        <maxTotLnTrm>10</maxTotLnTrm>
+        <trgt>무주택 청년</trgt>
+        <suprTgtDtlCond>만 19세 이상 34세 이하 무주택 세대주</suprTgtDtlCond>
+        <anin>연 5,000만원 이하</anin>
+        <crdtSc>제한 없음</crdtSc>
+        <age_39Blw>Y</age_39Blw>
+        <rsdArea>전국</rsdArea>
+        <jnMthd>기금e든든 또는 은행 방문</jnMthd>
+        <rfrcCnpl>1566-9009</rfrcCnpl>
+        <rltSite>https://nhuf.molit.go.kr</rltSite>
+      </item>
+    </items>
+  </body>
+</response>
