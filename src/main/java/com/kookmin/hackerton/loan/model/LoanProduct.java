@@ -20,6 +20,47 @@ public class LoanProduct {
     private Long maxAnnualIncome;
     private Integer maxCreditGrade;
 
+    private String annualIncomeText;
+    private String incomeText;
+    private String incomeCondition;
+    private String incomeConditionYes;
+    private String incomeConditionNone;
+
+    private String ageText;
+    private String age39Below;
+    private String age40Above;
+    private String age60Above;
+
+    private String creditGradeText;
+    private String creditGrade1;
+    private String creditGrade2;
+    private String creditGrade3;
+    private String creditGrade4;
+    private String creditGrade5;
+    private String creditGrade6;
+    private String creditGrade7;
+    private String creditGrade8;
+    private String creditGrade9;
+    private String creditGradeNoGrade;
+    private String creditGrade1To5;
+    private String creditGrade6ToNoGrade;
+
+    private String loanTargetHouse;
+    private String houseArea;
+    private String houseHoldCount;
+
+    private String productCategory;
+    private String institutionCategory;
+    private String applicationMethod;
+    private String contact;
+    private String relatedSite;
+    private String guaranteeInstitution;
+    private String extraNotes;
+    private String preferentialRateCondition;
+    private String overdueInterestRate;
+    private String earlyRepaymentFee;
+    private String loanAdditionalCost;
+
     public String getId() {
         return id;
     }
@@ -154,5 +195,30 @@ public class LoanProduct {
 
     public void setMaxCreditGrade(Integer maxCreditGrade) {
         this.maxCreditGrade = maxCreditGrade;
+    }
+
+    public String getCreditGradeFlag(int grade) {
+        switch (grade) {
+            case 1:
+                return creditGrade1;
+            case 2:
+                return creditGrade2;
+            case 3:
+                return creditGrade3;
+            case 4:
+                return creditGrade4;
+            case 5:
+                return creditGrade5;
+            case 6:
+                return creditGrade6;
+            case 7:
+                return creditGrade7;
+            case 8:
+                return creditGrade8;
+            case 9:
+                return creditGrade9;
+            default:
+                return null;
+        }
     }
 }

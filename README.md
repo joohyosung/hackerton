@@ -54,3 +54,24 @@ API base URL이나 operation path가 변경되면 `LOAN_API_ENDPOINT`, `LOAN_API
 데이터 파이프라인은 GitHub Actions에서 빌드 검증, 샘플 XML 계약 검증, 실제 API 수집, JSON 정규화, artifact 저장을 수행합니다.
 
 자세한 운영 방법은 [docs/data-pipeline.md](docs/data-pipeline.md)를 확인하세요.
+
+## 추천 알고리즘
+
+대출알리오는 단순 조건 비교가 아니라 DSR, DTI, LTV를 함께 계산해 대출 가능성을 평가합니다.
+
+### 계산 항목
+
+- DSR = 모든 대출의 연간 원리금 상환액 / 연소득 × 100
+- DTI = 신규 주택담보대출 연간 원리금 + 기존 기타대출 연간 이자 / 연소득 × 100
+- LTV = 신청 대출금액 + 기존 주담대 + 선순위 보증금 / 담보가치 × 100
+
+### 점수 구조
+
+| 항목 | 배점 |
+|---|---:|
+| 대출 가능성 | 45점 |
+| 상환 안정성 | 25점 |
+| 상품 적합성 | 20점 |
+| 금리/한도 매력도 | 10점 |
+
+DSR, DTI, LTV 기준값은 `application.properties`에서 설정할 수 있습니다.
