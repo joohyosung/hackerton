@@ -254,3 +254,16 @@ AND
 - 추가 확인 필요:
   - 현재 샘플 데이터 기준으로 고소득, 고액 주거담보 조건은 결과가 0건일 수 있음
   - 실제 공공데이터 API 키 연동 후 실데이터 기준으로 담보대출 추천 결과를 추가 검증해야 함
+
+---
+
+### GitHub Actions 컴파일 오류 수정 기록
+- 수정 일시: 2026-06-24
+- 오류 내용:
+  - Linux CI에서 `LoanPolicyproperties.java` 파일명과 `LoanPolicyProperties` public class명이 일치하지 않아 `mvn -B test` 컴파일이 실패함
+- 원인:
+  - Windows 로컬 파일시스템은 대소문자 차이를 느슨하게 처리하지만, GitHub Actions Linux 러너는 Java 파일명의 대소문자를 엄격하게 비교함
+- 수정 내용:
+  - Git 인덱스의 파일명을 `LoanPolicyproperties.java`에서 `LoanPolicyProperties.java`로 정정함
+- 검증 방법:
+  - CI와 동일하게 `mvn -B test`를 로컬에서 실행하여 컴파일 및 테스트 통과 여부를 확인함
