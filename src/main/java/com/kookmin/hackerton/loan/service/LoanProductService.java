@@ -109,6 +109,24 @@ public class LoanProductService {
         );
     }
 
+    public List<LoanRecommendation> search(LoanSearchRequest request) {
+        List<LoanProduct> products = loadProducts();
+        List<LoanRecommendation> recommendations = new ArrayList<LoanRecommendation>();
+
+        for (LoanProduct product : products) {
+            LoanRecommendation recommendation = score(product, request);
+
+            if (recommendation.isEligible()
+                    && recommendation.getScore() >= policyProperties.getMinimumRecommendationScore()) {
+                recommendations.add(recommendation);
+            }
+        }
+
+        recommendations.sort((left, right) -> Integer.compare(right.getScore(), left.getScore()));
+
+        return recommendations;
+    }
+
     public LoanProduct findById(String id) {
         if (!StringUtils.hasText(id)) {
             return null;
@@ -286,88 +304,7 @@ public class LoanProductService {
             values.add(value);
         }
     }
-
-    private LoanRecommendation score(LoanProduct product, LoanSearchRequest request) {
-        List<String> reasons = new ArrayList<String>();
-        List<String> warnings = new ArrayList<String>();
-
-        LoanAffordabilityResult affordability = calculateAffordability(request);
-
-        boolean dsrPassed = affordability.isDsrPassed();
-        boolean dtiPassed = affordability.isDtiPassed();
-        boolean ltvPassed = affordability.isLtvPassed();
-
-        if (!dsrPassed) {
-            warnings.add("예상 DSR이 기준을 초과합니다. 예상 "
-                + formatPercent(affordability.getDsr())
-                + ", 기준 "
-                + formatPercent(affordability.getDsrLimit())
-            );
-        }
-
-        if (affordability.isMortgageEvaluationUsed() && !dtiPassed) {
-            warnings.add("예상 DTI가 기준을 초과합니다. 예상 "
-                + formatPercent(affordability.getDti())
-                + ", 기준 "
-                + formatPercent(affordability.getDtiLimit()));
-        }
-
-        if (affordability.isMortgageEvaluationUsed() && !ltvPassed) {
-            warnings.add("예상 LTV가 기준을 초과합니다. 예상 "
-                + formatPercent(affordability.getLtv())
-                + ", 기준 "
-                + formatPercent(affordability.getLtvLimit()));
-        }
-
-        boolean ratioPassed = dsrPassed
-            && (!affordability.isMortgageEvaluationUsed() || dtiPassed)
-            && (!affordability.isMortgageEvaluationUsed() || ltvPassed);
-
-        int score = 0;
-
-        if (ratioPassed) {
-            score += 45;
-            reasons.add("DSR, DTI, LTV 기준으로 대출 가능성을 통과했습니다.");
-        } else {
-            score += 10;
-        }
-
-        score += calculateStabilityScore(affordability);
-        score += calculateProductFitScore(product, request, reasons, warnings);
-        score += calculateRateAndLimitScore(product, request, reasons, warnings);
-
-        if (affordability.getEstimatedMonthlyPayment() != null
-            && affordability.getEstimatedMonthlyPayment() > 0) {
-            reasons.add("예상 월 상환액은 약 "
-                + formatWon(affordability.getEstimatedMonthlyPayment())
-                + "입니다.");
-        }
-
-        if (affordability.getFinalPossibleLoanAmount() != null
-            && affordability.getFinalPossibleLoanAmount() > 0) {
-            reasons.add("계산상 가능 한도는 약 "
-                + formatWon(affordability.getFinalPossibleLoanAmount())
-                + "입니다.");
-        }
-
-        boolean eligible = ratioPassed && warnings.isEmpty();
-
-        if (reasons.isEmpty()) {
-            reasons.add("기본 조건으로 검토 가능한 상품입니다.");
-        }
-
-        affordability.setWarnings(warnings);
-
-        return new LoanRecommendation(
-            product,
-            Math.max(0, Math.min(score, 100)),
-            eligible,
-            reasons,
-            warnings,
-            affordability
-        );
-    }
-
+    
     private LoanAffordabilityResult calculateAffordability(
             LoanProduct product,
             LoanSearchRequest request,
@@ -683,40 +620,6 @@ public class LoanProductService {
 
         return score;
     }
-    private int calculateRateAndLimitScore(
-        LoanProduct product,
-        LoanSearchRequest request,
-        List<String> reasons,
-        List<String> warnings
-    ) {
-        int score = 0;
-
-        if (request.getLoanAmount() != null && request.getLoanAmount() > 0) {
-            Long limitAmount = product.getLimitAmount();
-
-            if (limitAmount == null) {
-                score += 2;
-                reasons.add("상품 한도 확인이 필요합니다.");
-            } else if (request.getLoanAmount() <= limitAmount) {
-                score += 5;
-                reasons.add("희망 금액이 상품 한도 안에 있습니다.");
-            } else {
-                warnings.add("희망 금액이 상품 최대한도를 초과합니다.");
-            }
-        }
-
-        String rateText = product.getRateText();
-        if (StringUtils.hasText(rateText)) {
-            if (rateText.contains("1.") || rateText.contains("2.") || rateText.contains("3.") || rateText.contains("4.")) {
-                score += 5;
-                reasons.add("금리 조건이 상대적으로 낮은 편입니다.");
-            } else {
-                score += 2;
-            }
-        }
-
-        return Math.min(score, 10);
-    }
 
     private boolean isMortgageEvaluationUsed(LoanProduct product, LoanSearchRequest request) {
         if (Boolean.TRUE.equals(request.getMortgageLoan())) {
@@ -768,14 +671,6 @@ public class LoanProductService {
         }
 
         return Math.round(value / 10000.0) + "만원";
-    }
-
-    private boolean matchesText(String source, String keyword) {
-        if (!StringUtils.hasText(source) || !StringUtils.hasText(keyword)) {
-            return false;
-        }
-
-        return source.toLowerCase(Locale.KOREAN).contains(keyword.toLowerCase(Locale.KOREAN));
     }
 
     private Integer inferMinAge(Element item) {
