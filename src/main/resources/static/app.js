@@ -124,11 +124,17 @@ function createResultCard(item, rank) {
   card.setAttribute("aria-label", `${productName(product)} 상세 보기`);
 
   card.innerHTML = `
-    <span class="rank">${rank}</span>
+    <span class="rank">
+      <strong>${rank}</strong>
+      <small>순위</small>
+    </span>
     <span class="result-body">
       <span class="result-title-row">
-        <strong>${escapeHtml(productName(product))}</strong>
-        <em>${escapeHtml(product.institution || product.ofrInstNm || "기관 확인")}</em>
+        <span class="result-title-group">
+          <strong>${escapeHtml(productName(product))}</strong>
+          <em>${escapeHtml(product.institution || product.ofrInstNm || "기관 확인")}</em>
+        </span>
+        <span class="score-pill">${Number(item.score || 0).toLocaleString("ko-KR")}점</span>
       </span>
       <span class="result-summary">${escapeHtml(product.summary || product.target || "상세 조건 확인이 필요합니다.")}</span>
       <span class="metric-row">
@@ -249,13 +255,15 @@ function openModal(item) {
   appendNotes("경고 메시지", [...(item.warnings || []), ...((affordability && affordability.warnings) || [])]);
 
   const notice = document.createElement("section");
+  notice.className = "modal-finance-notice";
 
   notice.innerHTML = `
       <h3>금융 계산 안내</h3>
-      <p>
-        • DSR 기준 : 40%
-        • DTI 기준 : 40%
-        • LTV 기준 : 70%(생애최초 80%)
+      <p class="ratio-reference">
+        <span>DSR 기준 40%</span>
+        <span>DTI 기준 40%</span>
+        <span>LTV 기준 70%</span>
+        <span>생애최초 LTV 80%</span>
       </p>
       <p>
           DSR, DTI, LTV 및 예상 월상환액은
