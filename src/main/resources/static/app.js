@@ -248,6 +248,27 @@ function openModal(item) {
   appendNotes("추천 사유", item.reasons);
   appendNotes("경고 메시지", [...(item.warnings || []), ...((affordability && affordability.warnings) || [])]);
 
+  const notice = document.createElement("section");
+
+  notice.innerHTML = `
+      <h3>금융 계산 안내</h3>
+      <p>
+        • DSR 기준 : 40%
+        • DTI 기준 : 40%
+        • LTV 기준 : 70%(생애최초 80%)
+      </p>
+      <p>
+          DSR, DTI, LTV 및 예상 월상환액은
+          입력한 정보를 기반으로 계산한 <strong>참고용 추정치</strong>입니다.
+      </p>
+      <p>
+          실제 대출 가능 여부와 한도는
+          금융기관의 심사 결과에 따라 달라질 수 있습니다.
+      </p>
+  `;
+
+  modalReasons.appendChild(notice);
+
   modal.hidden = false;
   document.body.classList.add("modal-open");
   modalDialog.focus();

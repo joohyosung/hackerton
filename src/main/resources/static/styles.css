@@ -559,3 +559,24 @@ button:focus-visible {
         padding: 12px;
     }
 }
+
+.calculation-notice {
+    margin-top: 24px;
+    padding: 16px;
+
+    border-left: 4px solid #f0ad4e;
+
+    background: #fff8e5;
+
+    border-radius: 8px;
+}
+
+.calculation-notice h5 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.calculation-notice p {
+    margin: 6px 0;
+    line-height: 1.5;
+}
