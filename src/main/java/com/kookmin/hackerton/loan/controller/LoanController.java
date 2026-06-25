@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/loans")
@@ -24,7 +25,7 @@ public class LoanController {
     }
 
     @PostMapping("/search")
-    public List<LoanRecommendation> search(@RequestBody LoanSearchRequest request) {
+    public List<LoanRecommendation> search(@Valid @RequestBody LoanSearchRequest request) {
         return loanProductService.search(request);
     }
 
