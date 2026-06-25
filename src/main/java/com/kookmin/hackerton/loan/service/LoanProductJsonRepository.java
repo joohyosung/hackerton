@@ -35,6 +35,7 @@ public class LoanProductJsonRepository {
                     new TypeReference<List<LoanProduct>>() {}
             );
         } catch (Exception exception) {
+            exception.printStackTrace();
             return Collections.emptyList();
         }
     }
