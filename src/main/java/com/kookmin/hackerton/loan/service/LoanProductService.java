@@ -15,8 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class LoanProductService {
@@ -26,22 +24,20 @@ public class LoanProductService {
     private final LoanPolicyProperties policyProperties;
     private final LoanRatioCalculator ratioCalculator;
     private final LoanProductAnalyzer productAnalyzer;
-    private final LoanProductXmlParser xmlParser;
-    private final RestTemplate restTemplate;
+    private final LoanApiClient loanApiClient;
 
     public LoanProductService(
         LoanApiProperties properties,
         LoanPolicyProperties policyProperties,
         LoanRatioCalculator ratioCalculator,
         LoanProductAnalyzer productAnalyzer,
-        LoanProductXmlParser xmlParser
+        LoanApiClient loanApiClient
     ) {
         this.properties = properties;
         this.policyProperties = policyProperties;
         this.ratioCalculator = ratioCalculator;
         this.productAnalyzer = productAnalyzer;
-        this.xmlParser = xmlParser;
-        this.restTemplate = new RestTemplate();
+        this.loanApiClient = loanApiClient;
     }
 
     private LoanRecommendation score(LoanProduct product, LoanSearchRequest request) {
@@ -138,7 +134,7 @@ public class LoanProductService {
         }
 
         try {
-            List<LoanProduct> products = fetchFromPublicApi();
+            List<LoanProduct> products = loanApiClient.fetchProducts();
             if (!products.isEmpty()) {
                 return products;
             }
@@ -153,27 +149,7 @@ public class LoanProductService {
         return Collections.emptyList();
     }
 
-    private List<LoanProduct> fetchFromPublicApi() throws Exception {
-        String xml = restTemplate.getForObject(
-            UriComponentsBuilder.fromHttpUrl(properties.getEndpoint())
-                .path(properties.getPath())
-                .queryParam("serviceKey", properties.getServiceKey())
-                .queryParam("pageNo", 1)
-                .queryParam("numOfRows", properties.getPageSize())
-                .queryParam("type", "xml")
-                .build(false)
-                .toUri(),
-            String.class
-        );
-
-        if (!StringUtils.hasText(xml)) {
-            return Collections.emptyList();
-        }
-
-        return xmlParser.parseProducts(xml);
-    }
-    
-    private LoanAffordabilityResult calculateAffordability(
+     private LoanAffordabilityResult calculateAffordability(
             LoanProduct product,
             LoanSearchRequest request,
             List<String> warnings

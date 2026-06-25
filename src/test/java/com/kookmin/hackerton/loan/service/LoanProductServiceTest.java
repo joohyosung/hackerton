@@ -24,12 +24,15 @@ class LoanProductServiceTest {
         policyProperties.setStressRateAddition(0.0);
         policyProperties.setMinimumRecommendationScore(35);
 
+        LoanProductXmlParser xmlParser = new LoanProductXmlParser();
+        LoanApiClient loanApiClient = new LoanApiClient(apiProperties, xmlParser);
+
         return new LoanProductService(
                 apiProperties,
                 policyProperties,
                 new LoanRatioCalculator(),
                 new LoanProductAnalyzer(),
-                new LoanProductXmlParser()
+                loanApiClient
         );
     }
 
