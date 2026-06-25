@@ -267,3 +267,15 @@ AND
   - Git 인덱스의 파일명을 `LoanPolicyproperties.java`에서 `LoanPolicyProperties.java`로 정정함
 - 검증 방법:
   - CI와 동일하게 `mvn -B test`를 로컬에서 실행하여 컴파일 및 테스트 통과 여부를 확인함
+
+---
+
+### main 브랜치 병합 후 파일명 추적 정리
+- 수정 일시: 2026-06-24
+- 상황:
+  - `test01`을 `main`에 병합한 뒤 Git 인덱스에 `LoanPolicyProperties.java`와 `LoanPolicyproperties.java`가 동시에 추적되는 상태가 확인됨
+- 수정 내용:
+  - 예전 대소문자 파일명인 `LoanPolicyproperties.java` 추적 엔트리를 제거하고 `LoanPolicyProperties.java`만 남김
+- 검증 방법:
+  - `git ls-files`로 `LoanPolicyProperties.java`만 추적되는지 확인함
+  - `mvn -B clean test`로 깨끗한 재컴파일과 테스트 통과 여부를 확인함
