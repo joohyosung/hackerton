@@ -28,7 +28,8 @@ class LoanProductServiceTest {
                 apiProperties,
                 policyProperties,
                 new LoanRatioCalculator(),
-                new LoanProductAnalyzer()
+                new LoanProductAnalyzer(),
+                new LoanProductXmlParser()
         );
     }
 

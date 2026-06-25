@@ -2,8 +2,6 @@ package com.kookmin.hackerton.loan.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.kookmin.hackerton.loan.config.LoanApiProperties;
-import com.kookmin.hackerton.loan.config.LoanPolicyProperties;
 import com.kookmin.hackerton.loan.model.LoanProduct;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -13,36 +11,24 @@ import org.springframework.util.StreamUtils;
 
 class LoanProductParsingTest {
 
-    private LoanProductService createService() {
-        LoanApiProperties apiProperties = new LoanApiProperties();
-        LoanPolicyProperties policyProperties = new LoanPolicyProperties();
-
-        return new LoanProductService(
-                apiProperties,
-                policyProperties,
-                new LoanRatioCalculator(),
-                new LoanProductAnalyzer()
-        );
-    }
+    private final LoanProductXmlParser parser = new LoanProductXmlParser();
 
     @Test
     void parseProducts_parsesSampleXmlItems() throws Exception {
-        LoanProductService service = createService();
-
+        
         String xml = readSampleXml();
 
-        List<LoanProduct> products = service.parseProducts(xml);
+        List<LoanProduct> products = parser.parseProducts(xml);
 
         assertThat(products).hasSize(2);
     }
 
     @Test
     void parseProducts_mapsFirstProductFields() throws Exception {
-        LoanProductService service = createService();
-
+        
         String xml = readSampleXml();
 
-        List<LoanProduct> products = service.parseProducts(xml);
+        List<LoanProduct> products = parser.parseProducts(xml);
         LoanProduct product = products.get(0);
 
         assertThat(product.getName()).isEqualTo("근로자 햇살론");
@@ -56,11 +42,10 @@ class LoanProductParsingTest {
 
     @Test
     void parseProducts_mapsSecondProductFields() throws Exception {
-        LoanProductService service = createService();
-
+        
         String xml = readSampleXml();
 
-        List<LoanProduct> products = service.parseProducts(xml);
+        List<LoanProduct> products = parser.parseProducts(xml);
         LoanProduct product = products.get(1);
 
         assertThat(product.getName()).isEqualTo("청년전용 버팀목 전세자금");
@@ -74,11 +59,10 @@ class LoanProductParsingTest {
 
     @Test
     void parseProducts_calculatesParsedValuesFromXml() throws Exception {
-        LoanProductService service = createService();
-
+        
         String xml = readSampleXml();
 
-        List<LoanProduct> products = service.parseProducts(xml);
+        List<LoanProduct> products = parser.parseProducts(xml);
 
         LoanProduct first = products.get(0);
         LoanProduct second = products.get(1);
@@ -92,11 +76,10 @@ class LoanProductParsingTest {
 
     @Test
     void parseProducts_generatesProductIds() throws Exception {
-        LoanProductService service = createService();
-
+       
         String xml = readSampleXml();
 
-        List<LoanProduct> products = service.parseProducts(xml);
+        List<LoanProduct> products = parser.parseProducts(xml);
 
         assertThat(products.get(0).getId()).isNotBlank();
         assertThat(products.get(1).getId()).isNotBlank();
