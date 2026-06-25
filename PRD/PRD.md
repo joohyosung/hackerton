@@ -299,3 +299,130 @@ AND
   - 검색 후 결과 리스트가 검색 창 아래에 표시되어야 함
   - 10개 초과 결과는 페이지네이션으로 분리되어야 함
   - 상품 클릭 시 상세 모달이 열리고 닫기 버튼 및 배경 클릭으로 닫혀야 함
+
+---
+
+### 최근 리팩터링 및 운영 안정화 정리
+- 정리 일시: 2026-06-26
+- 분석 범위:
+  - `3127441 메인페이지 수정` 이후 `afffd11 샘플데이터 사용 여부 변경`까지의 `main` 브랜치 반영분
+  - 데이터 로딩, 공공데이터 API 연동, 추천 계산 구조, 입력 검증, 테스트/CI 관련 변경사항
+
+#### 주요 변경 요약
+- 대출 상품 데이터 처리 구조를 단일 서비스 내부 로직에서 역할별 컴포넌트 구조로 분리함
+- 데이터 조회 우선순위를 `JSON 파일 -> 공공데이터 API -> 샘플 데이터` 순서로 정리함
+- 공공데이터 API 호출, XML 파싱, JSON 로딩, 샘플 데이터 제공, 추천 점수 계산을 각각 별도 클래스로 분리함
+- 사용자 검색 요청에 Bean Validation을 적용하고 검증 실패 시 400 JSON 응답을 반환하도록 개선함
+- 추천 정책 기준값과 API 설정값을 `application.properties`와 환경변수로 조정할 수 있게 정리함
+- GitHub Actions에서 Maven 테스트와 샘플 데이터 계약 검증을 수행하도록 CI 흐름을 보강함
+- 실데이터 수집 및 JSON 정규화를 위한 데이터 파이프라인 문서와 워크플로를 정리함
+
+#### 현재 데이터 로딩 흐름
+```text
+1. loan.api.json-path에 지정된 JSON 파일 로딩
+   - 기본값: data/loan-products.json
+   - 파일이 존재하고 파싱에 성공하면 API를 호출하지 않고 해당 데이터를 사용
+
+2. 공공데이터 API 호출
+   - JSON 파일이 없거나 비어 있는 경우 호출
+   - DATA_GO_KR_SERVICE_KEY가 설정되어 있어야 함
+   - endpoint/path/page-size는 환경변수로 변경 가능
+
+3. 샘플 데이터 사용
+   - API 키 없음, API 호출 실패, API 응답 없음, JSON 파싱 실패 시 fallback
+   - loan.api.use-sample-when-unavailable 값으로 fallback 사용 여부 제어
+```
+
+#### 주요 클래스 역할
+| 클래스 | 역할 |
+|---|---|
+| `LoanProductService` | 상품 목록 로딩 흐름 제어, 추천 결과 생성, 상품 ID 상세 조회 |
+| `LoanApiClient` | 공공데이터 API GET 호출 및 XML 응답 수신 |
+| `LoanProductXmlParser` | XML `items.item` 데이터를 `LoanProduct` 모델로 변환 |
+| `LoanProductJsonRepository` | 정규화된 JSON 파일을 `LoanProduct` 목록으로 로딩 |
+| `LoanSampleDataProvider` | 개발/장애 fallback용 샘플 상품 데이터 제공 |
+| `LoanRecommendationScorer` | 상품 적합성, 상환 가능성, 한도/금리, 정보 완성도 점수 계산 |
+| `LoanProductAnalyzer` | 상품 조건 텍스트 분석, 한도/금리/기간 추정, 조건 일치 판정 |
+| `LoanRatioCalculator` | 월상환액, DSR, DTI, LTV, 계산상 가능 한도 산출 |
+| `GlobalExceptionHandler` | 요청 검증 실패 응답을 표준 JSON 형태로 변환 |
+
+#### 설정 및 환경변수
+| 설정 | 기본값 | 설명 |
+|---|---|---|
+| `loan.api.endpoint` | `https://apis.data.go.kr/B553701/LoanProductSearchingInfo` | 공공데이터 API base URL |
+| `loan.api.path` | `/LoanProductSearchingInfo/getLoanProductSearchingInfo` | API operation path |
+| `loan.api.service-key` | `DATA_GO_KR_SERVICE_KEY` | 공공데이터 포털 인증키 |
+| `loan.api.page-size` | `100` | API 호출 시 한 페이지 결과 수 |
+| `loan.api.json-path` | `data/loan-products.json` | 운영용 정규화 JSON 데이터 경로 |
+| `loan.api.use-sample-when-unavailable` | `true` | JSON/API 사용 불가 시 샘플 데이터 fallback 여부 |
+| `loan.policy.*` | properties 기본값 | DSR, DTI, LTV, 스트레스 금리, 최소 추천 점수 기준 |
+
+#### 입력 검증 및 에러 처리
+- `LoanSearchRequest`에 필수값과 범위 검증을 추가함
+  - 연령: 19~100
+  - 신용등급: 1~10
+  - 상환기간: 1~40년
+  - 예상 금리: 0~30%
+  - 금액, 담보가치, 기존 대출액, 주택 면적 등은 0 이상
+- `LoanController.search()`에 `@Valid`를 적용함
+- 검증 실패 시 `GlobalExceptionHandler`가 다음 형태의 400 응답을 반환함
+```json
+{
+  "status": 400,
+  "message": "입력값 검증 실패",
+  "errors": {
+    "fieldName": "검증 실패 메시지"
+  }
+}
+```
+
+#### 추천 계산 구조
+- 추천 점수는 총 100점 기준으로 유지함
+  - 상품 조건 적합성: 35점
+  - 상환 가능성: 35점
+  - 한도/금리 매력도: 20점
+  - 정보 완성도: 10점
+- 최소 추천 점수는 `loan.policy.minimum-recommendation-score`로 설정함
+- DSR은 모든 추천에서 필수 통과 기준으로 사용함
+- 담보대출 또는 주거성 상품은 DTI/LTV까지 함께 평가함
+- 생애최초 주택 구입 여부에 따라 LTV 기준을 일반 LTV 기준과 별도로 적용함
+- 스트레스 금리(`loan.policy.stress-rate-addition`)를 통해 보수적인 상환 가능성 계산이 가능해짐
+
+#### 데이터 CI/CD 및 운영 데이터
+- `.github/workflows/ci.yml`
+  - `main` push와 PR에서 `mvn -B test` 실행
+  - 샘플 XML을 사용해 데이터 계약 검증 실행
+  - 정규화 샘플 데이터를 artifact로 업로드
+- `.github/workflows/data-pipeline.yml`
+  - 매일 오전 5시(KST) 스케줄 실행
+  - `DATA_GO_KR_SERVICE_KEY` 시크릿이 있으면 실데이터 API 호출
+  - XML 응답을 `data/loan-products.json`과 manifest로 정규화
+  - 수동 실행 시 `commit_dataset=true`를 선택하면 생성 데이터를 브랜치에 커밋 가능
+- `scripts/loan_data_pipeline.py`
+  - 샘플/실데이터 XML 파싱
+  - `resultCode`, `items.item`, 필수 필드 검증
+  - JSON 데이터셋과 SHA-256 manifest 생성
+
+#### 테스트 보강 내역
+- 컨트롤러 테스트 추가
+  - 정상 검색 요청
+  - 검증 실패 시 400 응답과 에러 메시지 반환
+- JSON 로딩 테스트 추가
+  - 정상 JSON 파일 로딩
+  - 파일 없음, 빈 경로, 잘못된 JSON fallback 확인
+- 서비스 테스트 보강
+  - 샘플 데이터 fallback
+  - 추천 점수 정렬
+  - 최소 추천 점수 필터
+  - 상품 ID 상세 조회
+  - 정책 기준값 반영
+- 파싱/계산 테스트 유지 및 확장
+  - XML 상품 파싱
+  - 금액/금리/기간 추정
+  - DSR, DTI, LTV, 가능 한도 계산
+
+#### 운영상 주요 포인트
+- 운영 환경에서는 `data/loan-products.json`이 있으면 API 호출 없이 빠르게 상품 데이터를 제공할 수 있음
+- API 장애 또는 인증키 미설정 상황에서도 샘플 데이터 fallback으로 화면 확인과 개발 테스트를 계속할 수 있음
+- 실제 서비스 정확도를 높이려면 GitHub Actions `Data Pipeline`에 `DATA_GO_KR_SERVICE_KEY` 시크릿을 설정하고 운영 JSON 데이터를 주기적으로 갱신해야 함
+- 샘플 데이터 fallback을 운영에서 막고 싶으면 `LOAN_API_USE_SAMPLE_WHEN_UNAVAILABLE=false`로 설정해야 함
