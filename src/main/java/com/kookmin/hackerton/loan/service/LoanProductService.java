@@ -39,14 +39,12 @@ public class LoanProductService {
     }
     
     public List<LoanRecommendation> search(LoanSearchRequest request) {
-        List<LoanProduct> products = loadProducts();
         List<LoanRecommendation> recommendations = new ArrayList<LoanRecommendation>();
 
-        for (LoanProduct product : products) {
+        for (LoanProduct product : loadProducts()) {
             LoanRecommendation recommendation = recommendationScorer.score(product, request);
 
-            if (recommendation.isEligible()
-                    && recommendation.getScore() >= policyProperties.getMinimumRecommendationScore()) {
+            if (isRecommendable(recommendation)) {
                 recommendations.add(recommendation);
             }
         }
@@ -54,6 +52,11 @@ public class LoanProductService {
         recommendations.sort((left, right) -> Integer.compare(right.getScore(), left.getScore()));
 
         return recommendations;
+    }
+
+    private boolean isRecommendable(LoanRecommendation recommendation) {
+        return recommendation.isEligible()
+                && recommendation.getScore() >= policyProperties.getMinimumRecommendationScore();
     }
 
     public LoanProduct findById(String id) {
@@ -71,23 +74,24 @@ public class LoanProductService {
     }
 
     private List<LoanProduct> loadProducts() {
+
         if (!StringUtils.hasText(properties.getServiceKey())) {
             return sampleDataProvider.sampleProducts();
         }
 
         try {
             List<LoanProduct> products = loanApiClient.fetchProducts();
+
             if (!products.isEmpty()) {
                 return products;
             }
+
         } catch (Exception exception) {
-            log.warn("Failed to load loan products from public API. Falling back to sample data.", exception);
+            log.warn("Failed to load loan products.", exception);
         }
 
-        if (properties.isUseSampleWhenUnavailable()) {
-            return sampleDataProvider.sampleProducts();
-        }
-
-        return Collections.emptyList();
+        return properties.isUseSampleWhenUnavailable()
+                ? sampleDataProvider.sampleProducts()
+                : Collections.emptyList();
     }
 }
