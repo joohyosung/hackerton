@@ -32,7 +32,8 @@ class LoanProductServiceTest {
                 policyProperties,
                 new LoanRatioCalculator(),
                 new LoanProductAnalyzer(),
-                loanApiClient
+                loanApiClient,
+                new LoanSampleDataProvider()
         );
     }
 
