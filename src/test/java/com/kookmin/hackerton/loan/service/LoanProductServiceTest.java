@@ -124,4 +124,102 @@ class LoanProductServiceTest {
         assertThat(service.findById("")).isNull();
         assertThat(service.findById(null)).isNull();
     }
+
+    @Test
+    void search_returnsNoRecommendation_whenDsrLimitIsVeryLow() {
+
+        LoanApiProperties apiProperties = new LoanApiProperties();
+        apiProperties.setServiceKey("");
+        apiProperties.setUseSampleWhenUnavailable(true);
+
+        LoanPolicyProperties policy = new LoanPolicyProperties();
+        policy.setDsrLimit(1.0);
+        policy.setDtiLimit(40.0);
+        policy.setLtvLimit(70.0);
+        policy.setFirstHomeBuyerLtvLimit(80.0);
+        policy.setMinimumRecommendationScore(35);
+
+        LoanProductAnalyzer analyzer = new LoanProductAnalyzer();
+        LoanRatioCalculator calculator = new LoanRatioCalculator();
+
+        LoanRecommendationScorer scorer =
+                new LoanRecommendationScorer(policy, calculator, analyzer);
+
+        LoanApiClient apiClient =
+                new LoanApiClient(apiProperties, new LoanProductXmlParser());
+
+        LoanProductService service =
+                new LoanProductService(
+                        apiProperties,
+                        policy,
+                        apiClient,
+                        new LoanSampleDataProvider(),
+                        scorer
+                );
+
+        List<LoanRecommendation> result =
+                service.search(basicRequest());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void search_returnsNoRecommendation_whenMinimumScoreIsTooHigh() {
+
+        LoanApiProperties apiProperties = new LoanApiProperties();
+        apiProperties.setServiceKey("");
+        apiProperties.setUseSampleWhenUnavailable(true);
+
+        LoanPolicyProperties policy = new LoanPolicyProperties();
+        policy.setDsrLimit(40.0);
+        policy.setDtiLimit(40.0);
+        policy.setLtvLimit(70.0);
+        policy.setFirstHomeBuyerLtvLimit(80.0);
+        policy.setMinimumRecommendationScore(90);
+
+        LoanProductAnalyzer analyzer = new LoanProductAnalyzer();
+        LoanRatioCalculator calculator = new LoanRatioCalculator();
+
+        LoanRecommendationScorer scorer =
+                new LoanRecommendationScorer(policy, calculator, analyzer);
+
+        LoanApiClient apiClient =
+                new LoanApiClient(apiProperties, new LoanProductXmlParser());
+
+        LoanProductService service =
+                new LoanProductService(
+                        apiProperties,
+                        policy,
+                        apiClient,
+                        new LoanSampleDataProvider(),
+                        scorer
+                );
+
+        List<LoanRecommendation> result =
+                service.search(basicRequest());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void firstHomeBuyerPolicy_canBeChanged() {
+
+        LoanPolicyProperties policy = new LoanPolicyProperties();
+
+        policy.setFirstHomeBuyerLtvLimit(85.0);
+
+        assertThat(policy.getFirstHomeBuyerLtvLimit())
+                .isEqualTo(85.0);
+    }
+
+    @Test
+    void stressRate_canBeConfigured() {
+
+        LoanPolicyProperties policy = new LoanPolicyProperties();
+
+        policy.setStressRateAddition(1.5);
+
+        assertThat(policy.getStressRateAddition())
+                .isEqualTo(1.5);
+    }
 }
