@@ -8,6 +8,7 @@ import com.kookmin.hackerton.loan.model.LoanRecommendation;
 import com.kookmin.hackerton.loan.model.LoanSearchRequest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 class LoanProductServiceTest {
 
@@ -36,12 +37,16 @@ class LoanProductServiceTest {
                 productAnalyzer
         );
 
+        LoanProductJsonRepository jsonRepository =
+            new LoanProductJsonRepository(new ObjectMapper());
+
         return new LoanProductService(
                 apiProperties,
                 policyProperties,
                 loanApiClient,
                 new LoanSampleDataProvider(),
-                recommendationScorer
+                recommendationScorer,
+                jsonRepository
         );
     }
 
@@ -154,7 +159,8 @@ class LoanProductServiceTest {
                         policy,
                         apiClient,
                         new LoanSampleDataProvider(),
-                        scorer
+                        scorer,
+                        new LoanProductJsonRepository(new ObjectMapper())
                 );
 
         List<LoanRecommendation> result =
@@ -192,7 +198,8 @@ class LoanProductServiceTest {
                         policy,
                         apiClient,
                         new LoanSampleDataProvider(),
-                        scorer
+                        scorer,
+                        new LoanProductJsonRepository(new ObjectMapper())
                 );
 
         List<LoanRecommendation> result =

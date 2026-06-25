@@ -23,19 +23,22 @@ public class LoanProductService {
     private final LoanApiClient loanApiClient;
     private final LoanSampleDataProvider sampleDataProvider;
     private final LoanRecommendationScorer recommendationScorer;
+    private final LoanProductJsonRepository jsonRepository;
 
     public LoanProductService(
         LoanApiProperties properties,
         LoanPolicyProperties policyProperties,
         LoanApiClient loanApiClient,
         LoanSampleDataProvider sampleDataProvider,
-        LoanRecommendationScorer recommendationScorer
+        LoanRecommendationScorer recommendationScorer,
+        LoanProductJsonRepository jsonRepository
     ) {
         this.properties = properties;
         this.policyProperties = policyProperties;
         this.loanApiClient = loanApiClient;
         this.sampleDataProvider = sampleDataProvider;
         this.recommendationScorer = recommendationScorer;
+        this.jsonRepository = jsonRepository;
     }
     
     public List<LoanRecommendation> search(LoanSearchRequest request) {
@@ -74,6 +77,11 @@ public class LoanProductService {
     }
 
     private List<LoanProduct> loadProducts() {
+        List<LoanProduct> jsonProducts = jsonRepository.load(properties.getJsonPath());
+
+        if (!jsonProducts.isEmpty()) {
+            return jsonProducts;
+        }
 
         if (!StringUtils.hasText(properties.getServiceKey())) {
             return sampleDataProvider.sampleProducts();
@@ -86,8 +94,9 @@ public class LoanProductService {
                 return products;
             }
 
+            log.warn("Public API returned no loan products.");
         } catch (Exception exception) {
-            log.warn("Failed to load loan products.", exception);
+            log.warn("Failed to load loan products from public API.", exception);
         }
 
         return properties.isUseSampleWhenUnavailable()
