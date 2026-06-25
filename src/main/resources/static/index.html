@@ -7,292 +7,218 @@
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <div class="app-shell">
-        <header class="topbar">
-            <a class="brand" href="/" aria-label="대출알리오 홈">
-                <img src="/assets/brand-mark.svg" alt="" class="brand-mark">
-                <span>대출알리오</span>
-            </a>
-            <div class="topbar-meta">
-                <span class="status-dot" aria-hidden="true"></span>
-                <span>서민대출상품 추천</span>
+    <main class="app-shell">
+        <section class="search-panel" aria-labelledby="search-title">
+            <div class="brand-line">
+                <a class="brand" href="/" aria-label="대출알리오 홈">
+                    <img src="/assets/brand-mark.svg" alt="" class="brand-mark">
+                    <span>대출알리오</span>
+                </a>
+                <span class="status-pill">서민대출상품 추천</span>
             </div>
-        </header>
 
-        <main class="workspace">
-            <section class="search-panel" aria-labelledby="search-title">
-                <div class="panel-head">
-                    <p class="eyebrow">맞춤 조건</p>
-                    <h1 id="search-title">대출알리오</h1>
-                    <p class="panel-copy">조건을 입력하면 공공데이터 기반 서민대출상품을 비교해 추천합니다.</p>
-                </div>
+            <div class="panel-head">
+                <p class="eyebrow">맞춤 조건</p>
+                <h1 id="search-title">맞춤 조건 검색</h1>
+            </div>
 
-                <form id="loan-form" class="loan-form">
-                    <label>
-                        <span>연령</span>
-                        <input id="age" name="age" type="number" min="19" max="100" value="32" required>
-                    </label>
+            <form id="loan-form" class="loan-form">
+                <label>
+                    <span>연령</span>
+                    <input id="age" name="age" type="number" min="19" max="100" value="32" required>
+                </label>
 
-                    <label>
-                        <span>연소득</span>
-                        <div class="with-unit">
-                            <input id="annualIncome" name="annualIncome" type="number" min="0" value="3200" required>
-                            <em>만원</em>
-                        </div>
-                    </label>
-
-                    <label>
-                        <span>신용등급</span>
-                        <select id="creditGrade" name="creditGrade" required>
-                            <option value="1">1등급</option>
-                            <option value="2">2등급</option>
-                            <option value="3">3등급</option>
-                            <option value="4">4등급</option>
-                            <option value="5" selected>5등급</option>
-                            <option value="6">6등급</option>
-                            <option value="7">7등급</option>
-                            <option value="8">8등급</option>
-                            <option value="9">9등급</option>
-                            <option value="10">10등급</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        <span>희망 금액</span>
-                        <div class="with-unit">
-                            <input id="loanAmount" name="loanAmount" type="number" min="0" value="1000" required>
-                            <em>만원</em>
-                        </div>
-                    </label>
-
-                    <label>
-                        <span>거주 지역</span>
-                        <select id="region" name="region" required>
-                            <option value="전국" selected>전국</option>
-                            <option value="서울">서울</option>
-                            <option value="경기">경기</option>
-                            <option value="인천">인천</option>
-                            <option value="강원">강원</option>
-                            <option value="충북">충북</option>
-                            <option value="충남">충남</option>
-                            <option value="전북">전북</option>
-                            <option value="전남">전남</option>
-                            <option value="경북">경북</option>
-                            <option value="경남">경남</option>
-                            <option value="부산">부산</option>
-                            <option value="대구">대구</option>
-                            <option value="광주">광주</option>
-                            <option value="대전">대전</option>
-                            <option value="울산">울산</option>
-                            <option value="세종">세종</option>
-                            <option value="제주">제주</option>
-                        </select>
-                    </label>
-
-                    <label class="wide">
-                        <span>대출 용도</span>
-                        <select id="purpose" name="purpose" required>
-                            <option value="생계" selected>생계</option>
-                            <option value="대환">대환</option>
-                            <option value="주거">주거</option>
-                            <option value="창업">창업</option>
-                            <option value="운영">운영</option>
-                            <option value="의료">의료</option>
-                            <option value="학자금">학자금</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        <span>상환기간</span>
-                        <div class="with-unit">
-                            <input id="desiredLoanTermYears" name="desiredLoanTermYears" type="number" min="1" max="40" value="5">
-                            <em>년</em>
-                        </div>
-                    </label>
-
-                    <label>
-                        <span>예상 금리</span>
-                        <div class="with-unit">
-                            <input id="expectedInterestRate" name="expectedInterestRate" type="number" min="0" max="30" step="0.1" value="5.0">
-                            <em>%</em>
-                        </div>
-                    </label>
-
-                    <label class="wide">
-                        <span>기존 대출 월 상환액 합계</span>
-                        <div class="with-unit">
-                            <input id="existingMonthlyDebtPayment" name="existingMonthlyDebtPayment" type="number" min="0" value="0">
-                            <em>만원</em>
-                        </div>
-                    </label>
-
-                    <label class="wide">
-                        <span>기존 기타대출 연간 이자액</span>
-                        <div class="with-unit">
-                            <input id="existingAnnualDebtInterest" name="existingAnnualDebtInterest" type="number" min="0" value="0">
-                            <em>만원</em>
-                        </div>
-                    </label>
-
-                    <label>
-                        <span>주택 보유 수</span>
-                        <select id="houseCount" name="houseCount">
-                            <option value="0" selected>무주택</option>
-                            <option value="1">1주택</option>
-                            <option value="2">2주택 이상</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        <span>주택 면적</span>
-                        <div class="with-unit">
-                            <input id="houseArea" name="houseArea" type="number" min="0" value="0">
-                            <em>㎡</em>
-                        </div>
-                    </label>
-
-                    <label class="wide checkbox-label">
-                        <input id="mortgageLoan" name="mortgageLoan" type="checkbox">
-                        <span>담보대출 또는 주거 목적 대출로 DTI/LTV도 계산하기</span>
-                    </label>
-
-                    <label>
-                        <span>담보가치</span>
-                        <div class="with-unit">
-                            <input id="collateralValue" name="collateralValue" type="number" min="0" value="0">
-                            <em>만원</em>
-                        </div>
-                    </label>
-
-                    <label>
-                        <span>기존 주담대 잔액</span>
-                        <div class="with-unit">
-                            <input id="existingMortgageBalance" name="existingMortgageBalance" type="number" min="0" value="0">
-                            <em>만원</em>
-                        </div>
-                    </label>
-
-                    <label>
-                        <span>선순위 보증금</span>
-                        <div class="with-unit">
-                            <input id="seniorDeposit" name="seniorDeposit" type="number" min="0" value="0">
-                            <em>만원</em>
-                        </div>
-                    </label>
-
-                    <label>
-                        <span>생애최초 여부</span>
-                        <select id="firstHomeBuyer" name="firstHomeBuyer">
-                            <option value="false" selected>아니오</option>
-                            <option value="true">예</option>
-                        </select>
-                    </label>
-
-                    <button type="submit" class="primary-action">
-                        <span class="button-icon" aria-hidden="true">⌕</span>
-                        <span>추천 조회</span>
-                    </button>
-                </form>
-
-                <div class="mini-visual" aria-hidden="true">
-                    <div class="mini-visual-row strong"></div>
-                    <div class="mini-visual-row"></div>
-                    <div class="mini-visual-row short"></div>
-                    <div class="mini-chip">조건 비교</div>
-                </div>
-            </section>
-
-            <section class="result-panel" aria-labelledby="result-title">
-                <div class="result-head">
-                    <div>
-                        <p class="eyebrow">추천 결과</p>
-                        <h2 id="result-title">조건에 맞는 상품</h2>
+                <label>
+                    <span>연소득</span>
+                    <div class="with-unit">
+                        <input id="annualIncome" name="annualIncome" type="number" min="0" value="3200" required>
+                        <em>만원</em>
                     </div>
-                    <output id="result-count" class="result-count">0개</output>
+                </label>
+
+                <label>
+                    <span>신용등급</span>
+                    <select id="creditGrade" name="creditGrade" required>
+                        <option value="1">1등급</option>
+                        <option value="2">2등급</option>
+                        <option value="3">3등급</option>
+                        <option value="4">4등급</option>
+                        <option value="5" selected>5등급</option>
+                        <option value="6">6등급</option>
+                        <option value="7">7등급</option>
+                        <option value="8">8등급</option>
+                        <option value="9">9등급</option>
+                        <option value="10">10등급</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span>희망 금액</span>
+                    <div class="with-unit">
+                        <input id="loanAmount" name="loanAmount" type="number" min="0" value="1000" required>
+                        <em>만원</em>
+                    </div>
+                </label>
+
+                <label>
+                    <span>거주 지역</span>
+                    <select id="region" name="region" required>
+                        <option value="전국" selected>전국</option>
+                        <option value="서울">서울</option>
+                        <option value="경기">경기</option>
+                        <option value="인천">인천</option>
+                        <option value="강원">강원</option>
+                        <option value="충북">충북</option>
+                        <option value="충남">충남</option>
+                        <option value="전북">전북</option>
+                        <option value="전남">전남</option>
+                        <option value="경북">경북</option>
+                        <option value="경남">경남</option>
+                        <option value="부산">부산</option>
+                        <option value="대구">대구</option>
+                        <option value="광주">광주</option>
+                        <option value="대전">대전</option>
+                        <option value="울산">울산</option>
+                        <option value="세종">세종</option>
+                        <option value="제주">제주</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span>대출 용도</span>
+                    <select id="purpose" name="purpose" required>
+                        <option value="생계" selected>생계</option>
+                        <option value="대환">대환</option>
+                        <option value="주거">주거</option>
+                        <option value="창업">창업</option>
+                        <option value="운영">운영</option>
+                        <option value="의료">의료</option>
+                        <option value="학자금">학자금</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span>상환기간</span>
+                    <div class="with-unit">
+                        <input id="desiredLoanTermYears" name="desiredLoanTermYears" type="number" min="1" max="40" value="5">
+                        <em>년</em>
+                    </div>
+                </label>
+
+                <label>
+                    <span>예상 금리</span>
+                    <div class="with-unit">
+                        <input id="expectedInterestRate" name="expectedInterestRate" type="number" min="0" max="30" step="0.1" value="5.0">
+                        <em>%</em>
+                    </div>
+                </label>
+
+                <label>
+                    <span>기존 대출 월 상환액 합계</span>
+                    <div class="with-unit">
+                        <input id="existingMonthlyDebtPayment" name="existingMonthlyDebtPayment" type="number" min="0" value="0">
+                        <em>만원</em>
+                    </div>
+                </label>
+
+                <label>
+                    <span>기존 기타대출 연간 이자액</span>
+                    <div class="with-unit">
+                        <input id="existingAnnualDebtInterest" name="existingAnnualDebtInterest" type="number" min="0" value="0">
+                        <em>만원</em>
+                    </div>
+                </label>
+
+                <label>
+                    <span>주택 보유 수</span>
+                    <select id="houseCount" name="houseCount">
+                        <option value="0" selected>무주택</option>
+                        <option value="1">1주택</option>
+                        <option value="2">2주택 이상</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span>주택 면적</span>
+                    <div class="with-unit">
+                        <input id="houseArea" name="houseArea" type="number" min="0" value="0">
+                        <em>㎡</em>
+                    </div>
+                </label>
+
+                <label class="checkbox-label wide">
+                    <input id="mortgageLoan" name="mortgageLoan" type="checkbox">
+                    <span>담보대출 또는 주거 목적 대출</span>
+                </label>
+
+                <label>
+                    <span>담보가치</span>
+                    <div class="with-unit">
+                        <input id="collateralValue" name="collateralValue" type="number" min="0" value="0">
+                        <em>만원</em>
+                    </div>
+                </label>
+
+                <label>
+                    <span>기존 주담대 잔액</span>
+                    <div class="with-unit">
+                        <input id="existingMortgageBalance" name="existingMortgageBalance" type="number" min="0" value="0">
+                        <em>만원</em>
+                    </div>
+                </label>
+
+                <label>
+                    <span>선순위 보증금</span>
+                    <div class="with-unit">
+                        <input id="seniorDeposit" name="seniorDeposit" type="number" min="0" value="0">
+                        <em>만원</em>
+                    </div>
+                </label>
+
+                <label>
+                    <span>생애최초 여부</span>
+                    <select id="firstHomeBuyer" name="firstHomeBuyer">
+                        <option value="false" selected>아니오</option>
+                        <option value="true">예</option>
+                    </select>
+                </label>
+
+                <button type="submit" class="primary-action">
+                    <span class="button-icon" aria-hidden="true">⌕</span>
+                    <span>검색</span>
+                </button>
+            </form>
+        </section>
+
+        <section id="result-section" class="result-section" aria-labelledby="result-title" hidden>
+            <div class="result-head">
+                <div>
+                    <p class="eyebrow">검색 결과</p>
+                    <h2 id="result-title">조건에 맞는 대출 정보</h2>
                 </div>
+                <output id="result-count" class="result-count">0개</output>
+            </div>
 
-                <div class="trust-strip" aria-label="추천 기준">
-                    <span>한도</span>
-                    <span>금리</span>
-                    <span>대상</span>
-                    <span>지역</span>
-                </div>
+            <div id="message" class="message" role="status"></div>
+            <div id="results" class="results" aria-live="polite"></div>
+            <nav id="pagination" class="pagination" aria-label="검색 결과 페이지"></nav>
+        </section>
+    </main>
 
-                <div id="message" class="message" role="status"></div>
-                <div id="results" class="results" aria-live="polite"></div>
-            </section>
-
-            <aside class="detail-panel" aria-labelledby="detail-title">
-                <div class="detail-empty" id="detail-empty">
-                    <img src="/assets/brand-mark.svg" alt="" class="empty-mark">
-                    <p>상품명을 선택하면 상세 조건을 볼 수 있습니다.</p>
-                </div>
-
-                <div id="detail-content" class="detail-content hidden">
+    <div id="product-modal" class="modal-overlay" hidden>
+        <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
+            <div class="modal-head">
+                <div>
                     <p class="eyebrow">상품 상세</p>
-                    <h2 id="detail-title"></h2>
-                    <dl class="detail-list">
-                        <div>
-                            <dt>취급기관</dt>
-                            <dd id="detail-institution"></dd>
-                        </div>
-                        <div>
-                            <dt>대출한도</dt>
-                            <dd id="detail-limit"></dd>
-                        </div>
-                        <div>
-                            <dt>금리</dt>
-                            <dd id="detail-rate"></dd>
-                        </div>
-                        <div>
-                            <dt>용도</dt>
-                            <dd id="detail-purpose"></dd>
-                        </div>
-                        <div>
-                            <dt>기간</dt>
-                            <dd id="detail-period"></dd>
-                        </div>
-                        <div>
-                            <dt>대상</dt>
-                            <dd id="detail-target"></dd>
-                        </div>
-                        <div>
-                            <dt>지역</dt>
-                            <dd id="detail-region"></dd>
-                        </div>
-                        <div>
-                            <dt>예상 월상환액</dt>
-                            <dd id="detail-monthly-payment"></dd>
-                        </div>
-                        <div>
-                            <dt>DSR</dt>
-                            <dd id="detail-dsr"></dd>
-                        </div>
-                        <div>
-                            <dt>DTI</dt>
-                            <dd id="detail-dti"></dd>
-                        </div>
-                        <div>
-                            <dt>LTV</dt>
-                            <dd id="detail-ltv"></dd>
-                        </div>
-                        <div>
-                            <dt>계산 기준 금리</dt>
-                            <dd id="detail-calculation-rate"></dd>
-                        </div>
-                        <div>
-                            <dt>계산 기준 기간</dt>
-                            <dd id="detail-calculation-term"></dd>
-                        </div>
-                        <div>
-                            <dt>계산상 가능 한도</dt>
-                            <dd id="detail-possible-limit"></dd>
-                        </div>
-                    </dl>
-                    <p id="detail-summary" class="detail-summary"></p>
+                    <h2 id="modal-title"></h2>
                 </div>
-            </aside>
-        </main>
+                <button id="modal-close" class="icon-button" type="button" aria-label="닫기">×</button>
+            </div>
+
+            <div id="modal-summary" class="modal-summary"></div>
+            <dl id="modal-details" class="detail-list"></dl>
+            <div id="modal-reasons" class="detail-notes"></div>
+        </section>
     </div>
 
     <script src="/app.js"></script>

@@ -1,40 +1,50 @@
+const PAGE_SIZE = 10;
+
 const form = document.querySelector("#loan-form");
+const resultSection = document.querySelector("#result-section");
 const results = document.querySelector("#results");
 const message = document.querySelector("#message");
 const resultCount = document.querySelector("#result-count");
-const detailEmpty = document.querySelector("#detail-empty");
-const detailContent = document.querySelector("#detail-content");
+const pagination = document.querySelector("#pagination");
+const modal = document.querySelector("#product-modal");
+const modalDialog = modal.querySelector(".modal-dialog");
+const modalClose = document.querySelector("#modal-close");
+const modalTitle = document.querySelector("#modal-title");
+const modalSummary = document.querySelector("#modal-summary");
+const modalDetails = document.querySelector("#modal-details");
+const modalReasons = document.querySelector("#modal-reasons");
 
-const detailFields = {
-  title: document.querySelector("#detail-title"),
-  institution: document.querySelector("#detail-institution"),
-  limit: document.querySelector("#detail-limit"),
-  rate: document.querySelector("#detail-rate"),
-  purpose: document.querySelector("#detail-purpose"),
-  period: document.querySelector("#detail-period"),
-  target: document.querySelector("#detail-target"),
-  region: document.querySelector("#detail-region"),
-  monthlyPayment: document.querySelector("#detail-monthly-payment"),
-  dsr: document.querySelector("#detail-dsr"),
-  dti: document.querySelector("#detail-dti"),
-  ltv: document.querySelector("#detail-ltv"),
-  calculationRate: document.querySelector("#detail-calculation-rate"),
-  calculationTerm: document.querySelector("#detail-calculation-term"),
-  possibleLimit: document.querySelector("#detail-possible-limit"),
-  summary: document.querySelector("#detail-summary"),
-};
+let currentResults = [];
+let currentPage = 1;
+let lastFocusedElement = null;
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  currentPage = 1;
   await searchLoans();
 });
 
-window.addEventListener("DOMContentLoaded", () => {
-  searchLoans();
+modalClose.addEventListener("click", closeModal);
+
+modal.addEventListener("click", (event) => {
+  if (event.target === modal) {
+    closeModal();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !modal.hidden) {
+    closeModal();
+  }
 });
 
 async function searchLoans() {
   setLoading(true);
+  resultSection.hidden = false;
+  message.textContent = "검색 중입니다.";
+  results.innerHTML = "";
+  pagination.innerHTML = "";
+  resultCount.textContent = "0개";
 
   const payload = {
     age: numberValue("age"),
@@ -70,145 +80,253 @@ async function searchLoans() {
     }
 
     const data = await response.json();
-    renderResults(data);
+    renderResults(Array.isArray(data) ? data : data.recommendations || []);
   } catch (error) {
-    results.innerHTML = "";
+    currentResults = [];
     resultCount.textContent = "0개";
-    message.textContent = "추천 결과를 불러오지 못했습니다.";
+    message.textContent = "검색 결과를 불러오지 못했습니다.";
   } finally {
     setLoading(false);
   }
 }
 
 function renderResults(items) {
-  results.innerHTML = "";
-  resultCount.textContent = `${items.length}개`;
+  currentResults = items;
+  resultCount.textContent = `${items.length.toLocaleString("ko-KR")}개`;
   message.textContent = items.length ? "" : "조건에 맞는 상품이 없습니다.";
+  currentPage = Math.min(currentPage, Math.max(getTotalPages(), 1));
+  renderPage();
+}
 
-  if (!items.length) {
-    clearDetail();
+function renderPage() {
+  results.innerHTML = "";
+
+  if (!currentResults.length) {
+    pagination.innerHTML = "";
+    return;
   }
 
-  items.forEach((item, index) => {
-    const product = item.product;
-    const card = document.createElement("article");
-    card.className = "result-card";
-    card.tabIndex = 0;
-    card.setAttribute("role", "button");
-    card.setAttribute("aria-label", `${product.name} 상세 보기`);
-    card.innerHTML = `
-      <div class="score-box">
-        <strong>${item.score}</strong>
-        <span>점</span>
-      </div>
-      <div class="result-body">
-        <div class="result-title-row">
-          <h3>${escapeHtml(product.name)}</h3>
-          <span>${escapeHtml(product.institution || "기관 확인")}</span>
-        </div>
-        <p>${escapeHtml(product.summary || product.target || "상세 조건 확인이 필요합니다.")}</p>
-        <div class="metric-row">
-          <span>${escapeHtml(product.limitText || "한도 확인")}</span>
-          <span>${escapeHtml(product.rateText || "금리 확인")}</span>
-          <span>${escapeHtml(product.region || "지역 확인")}</span>
-          ${ratioBadges(item.affordability)}
-        </div>
-        <ul class="reason-list">
-          ${item.reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}
-        </ul>
-      </div>
-    `;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = currentResults.slice(start, start + PAGE_SIZE);
 
-    function ratioBadges(affordability) {
-      if (!affordability) {
-        return "";
-      }
-
-      const badges = [];
-
-      badges.push(`<span>DSR ${escapeHtml(percentText(affordability.dsr))}</span>`);
-
-      if (affordability.mortgageEvaluationUsed) {
-        badges.push(`<span>DTI ${escapeHtml(percentText(affordability.dti))}</span>`);
-        badges.push(`<span>LTV ${escapeHtml(percentText(affordability.ltv))}</span>`);
-      }
-
-      if (affordability.estimatedMonthlyPayment) {
-        badges.push(`<span>월 ${escapeHtml(formatWon(affordability.estimatedMonthlyPayment))}</span>`);
-      }
-
-      return badges.join("");
-    }
-
-    card.addEventListener("click", () => showDetail(item));
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        showDetail(item);
-      }
-    });
-
-    results.appendChild(card);
-
-    if (index === 0) {
-      showDetail(item);
-    }
+  pageItems.forEach((item, index) => {
+    results.appendChild(createResultCard(item, start + index + 1));
   });
+
+  renderPagination();
 }
 
-function clearDetail() {
-  detailContent.classList.add("hidden");
-  detailEmpty.classList.remove("hidden");
+function createResultCard(item, rank) {
+  const product = item.product || {};
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "result-card";
+  card.setAttribute("aria-label", `${productName(product)} 상세 보기`);
+
+  card.innerHTML = `
+    <span class="rank">${rank}</span>
+    <span class="result-body">
+      <span class="result-title-row">
+        <strong>${escapeHtml(productName(product))}</strong>
+        <em>${escapeHtml(product.institution || product.ofrInstNm || "기관 확인")}</em>
+      </span>
+      <span class="result-summary">${escapeHtml(product.summary || product.target || "상세 조건 확인이 필요합니다.")}</span>
+      <span class="metric-row">
+        <span>${escapeHtml(product.limitText || product.lnLmt || "한도 확인")}</span>
+        <span>${escapeHtml(product.rateText || product.irt || "금리 확인")}</span>
+        <span>${escapeHtml(product.region || product.rsdArea || "지역 확인")}</span>
+        ${ratioBadges(item.affordability)}
+      </span>
+    </span>
+  `;
+
+  card.addEventListener("click", () => openModal(item));
+  return card;
 }
 
-function showDetail(item) {
-  const product = item.product;
-  const affordability = item.affordability;
+function renderPagination() {
+  const totalPages = getTotalPages();
+  pagination.innerHTML = "";
 
-  detailEmpty.classList.add("hidden");
-  detailContent.classList.remove("hidden");
-
-  detailFields.title.textContent = product.name || "상품명 확인";
-  detailFields.institution.textContent = product.institution || "확인 필요";
-  detailFields.limit.textContent = product.limitText || formatWon(product.limitAmount) || "확인 필요";
-  detailFields.rate.textContent = [product.rateType, product.rateText].filter(Boolean).join(" · ") || "확인 필요";
-  detailFields.purpose.textContent = product.purpose || "확인 필요";
-  detailFields.period.textContent = product.periodText || "확인 필요";
-  detailFields.target.textContent = product.target || "확인 필요";
-  detailFields.region.textContent = product.region || "확인 필요";
-
-  if (affordability) {
-    detailFields.monthlyPayment.textContent = formatWon(affordability.estimatedMonthlyPayment);
-    detailFields.dsr.textContent = `${percentText(affordability.dsr)} / 기준 ${percentText(affordability.dsrLimit)}`;
-    detailFields.calculationRate.textContent = `${percentText(affordability.calculationRate)} 적용`;
-    detailFields.calculationTerm.textContent = `${affordability.calculationTermYears || "확인 필요"}년`;
-
-    if (affordability.mortgageEvaluationUsed) {
-      detailFields.dti.textContent = `${percentText(affordability.dti)} / 기준 ${percentText(affordability.dtiLimit)}`;
-      detailFields.ltv.textContent = `${percentText(affordability.ltv)} / 기준 ${percentText(affordability.ltvLimit)}`;
-    } else {
-      detailFields.dti.textContent = "비담보대출 계산 제외";
-      detailFields.ltv.textContent = "비담보대출 계산 제외";
-    }
-
-    detailFields.possibleLimit.textContent = formatWon(affordability.finalPossibleLoanAmount);
-  } else {
-    detailFields.monthlyPayment.textContent = "확인 필요";
-    detailFields.dsr.textContent = "확인 필요";
-    detailFields.dti.textContent = "확인 필요";
-    detailFields.ltv.textContent = "확인 필요";
-    detailFields.calculationRate.textContent = "확인 필요";
-    detailFields.calculationTerm.textContent = "확인 필요";
-    detailFields.possibleLimit.textContent = "확인 필요";
+  if (totalPages <= 1) {
+    return;
   }
 
-  detailFields.summary.textContent = product.summary || "상세 설명이 제공되지 않았습니다.";
+  pagination.appendChild(createPageButton("이전", currentPage - 1, currentPage === 1));
+
+  getVisiblePages(totalPages).forEach((page) => {
+    if (page === "...") {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "pagination-ellipsis";
+      ellipsis.textContent = "...";
+      pagination.appendChild(ellipsis);
+      return;
+    }
+
+    const button = createPageButton(String(page), page, false);
+    button.setAttribute("aria-current", page === currentPage ? "page" : "false");
+    pagination.appendChild(button);
+  });
+
+  pagination.appendChild(createPageButton("다음", currentPage + 1, currentPage === totalPages));
+}
+
+function createPageButton(label, page, disabled) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "page-button";
+  button.textContent = label;
+  button.disabled = disabled;
+  button.addEventListener("click", () => {
+    currentPage = page;
+    renderPage();
+    resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  return button;
+}
+
+function getVisiblePages(totalPages) {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const pages = [1];
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+
+  if (start > 2) {
+    pages.push("...");
+  }
+
+  for (let page = start; page <= end; page += 1) {
+    pages.push(page);
+  }
+
+  if (end < totalPages - 1) {
+    pages.push("...");
+  }
+
+  pages.push(totalPages);
+  return pages;
+}
+
+function openModal(item) {
+  const product = item.product || {};
+  const affordability = item.affordability || {};
+
+  lastFocusedElement = document.activeElement;
+  modalTitle.textContent = productName(product);
+  modalSummary.textContent = product.summary || product.target || "상세 설명이 제공되지 않았습니다.";
+  modalDetails.innerHTML = "";
+  modalReasons.innerHTML = "";
+
+  const detailRows = [
+    ["취급기관", product.institution || product.ofrInstNm],
+    ["제공기관", product.ofrInstNm],
+    ["대출한도", product.limitText || product.lnLmt || formatWon(product.limitAmount)],
+    ["금리", [product.rateType, product.rateText || product.irt].filter(Boolean).join(" · ")],
+    ["용도", product.purpose || product.usge],
+    ["대상", product.target || product.trgt],
+    ["거주지역", product.region || product.rsdArea],
+    ["기간", product.periodText || product.maxTotLnTrm],
+    ["상환방법", product.repaymentMethod || product.rdptMthd],
+    ["신청방법", product.applicationMethod || product.jnMthd],
+    ["문의처", product.contact || product.rfrcCnpl],
+    ["보증기관", product.guaranteeInstitution || product.grnInst],
+    ["예상 월상환액", formatWon(affordability.estimatedMonthlyPayment)],
+    ["DSR", ratioText(affordability.dsr, affordability.dsrLimit)],
+    ["DTI", affordability.mortgageEvaluationUsed ? ratioText(affordability.dti, affordability.dtiLimit) : "비담보대출 계산 제외"],
+    ["LTV", affordability.mortgageEvaluationUsed ? ratioText(affordability.ltv, affordability.ltvLimit) : "비담보대출 계산 제외"],
+    ["계산 기준 금리", affordability.calculationRate == null ? "" : `${percentText(affordability.calculationRate)} 적용`],
+    ["계산 기준 기간", affordability.calculationTermYears ? `${affordability.calculationTermYears}년` : ""],
+    ["계산상 가능 한도", formatWon(affordability.finalPossibleLoanAmount)],
+    ["관련 사이트", product.relatedSite || product.sourceUrl || product.rltSite],
+    ["기타 참고사항", product.extraNotes || product.etcRefSbjc || product.kinfaPrdEtc],
+  ];
+
+  detailRows.forEach(([label, value]) => appendDetailRow(label, value));
+  appendNotes("추천 사유", item.reasons);
+  appendNotes("경고 메시지", [...(item.warnings || []), ...((affordability && affordability.warnings) || [])]);
+
+  modal.hidden = false;
+  document.body.classList.add("modal-open");
+  modalDialog.focus();
+}
+
+function closeModal() {
+  modal.hidden = true;
+  document.body.classList.remove("modal-open");
+
+  if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+    lastFocusedElement.focus();
+  }
+}
+
+function appendDetailRow(label, value) {
+  const normalized = normalizeText(value);
+  const row = document.createElement("div");
+  const term = document.createElement("dt");
+  const description = document.createElement("dd");
+
+  term.textContent = label;
+  description.textContent = normalized || "확인 필요";
+  row.append(term, description);
+  modalDetails.appendChild(row);
+}
+
+function appendNotes(title, notes) {
+  const validNotes = (notes || []).filter(Boolean);
+
+  if (!validNotes.length) {
+    return;
+  }
+
+  const section = document.createElement("section");
+  const heading = document.createElement("h3");
+  const list = document.createElement("ul");
+
+  heading.textContent = title;
+  validNotes.forEach((note) => {
+    const item = document.createElement("li");
+    item.textContent = note;
+    list.appendChild(item);
+  });
+
+  section.append(heading, list);
+  modalReasons.appendChild(section);
 }
 
 function setLoading(isLoading) {
   const button = form.querySelector("button");
   button.disabled = isLoading;
-  button.querySelector("span:last-child").textContent = isLoading ? "조회 중" : "추천 조회";
+  button.querySelector("span:last-child").textContent = isLoading ? "검색 중" : "검색";
+}
+
+function ratioBadges(affordability) {
+  if (!affordability) {
+    return "";
+  }
+
+  const badges = [`<span>DSR ${escapeHtml(percentText(affordability.dsr))}</span>`];
+
+  if (affordability.mortgageEvaluationUsed) {
+    badges.push(`<span>DTI ${escapeHtml(percentText(affordability.dti))}</span>`);
+    badges.push(`<span>LTV ${escapeHtml(percentText(affordability.ltv))}</span>`);
+  }
+
+  if (affordability.estimatedMonthlyPayment) {
+    badges.push(`<span>월 ${escapeHtml(formatWon(affordability.estimatedMonthlyPayment))}</span>`);
+  }
+
+  return badges.join("");
+}
+
+function getTotalPages() {
+  return Math.ceil(currentResults.length / PAGE_SIZE);
+}
+
+function productName(product) {
+  return product.name || product.finPrdNm || "상품명 확인";
 }
 
 function numberValue(id) {
@@ -228,6 +346,14 @@ function booleanValue(id) {
   return document.querySelector(`#${id}`).value === "true";
 }
 
+function ratioText(value, limit) {
+  if (value == null) {
+    return "";
+  }
+
+  return `${percentText(value)} / 기준 ${percentText(limit)}`;
+}
+
 function percentText(value) {
   if (value == null || Number.isNaN(Number(value))) {
     return "확인 필요";
@@ -241,15 +367,33 @@ function toWon(manwon) {
 }
 
 function formatWon(value) {
-  if (!value) {
+  if (value == null || value === "") {
     return "";
   }
 
-  if (value >= 100000000) {
-    return `${Math.round(value / 10000000) / 10}억원`;
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return "";
   }
 
-  return `${Math.round(value / 10000).toLocaleString("ko-KR")}만원`;
+  if (number === 0) {
+    return "0원";
+  }
+
+  if (number >= 100000000) {
+    return `${Math.round(number / 10000000) / 10}억원`;
+  }
+
+  return `${Math.round(number / 10000).toLocaleString("ko-KR")}만원`;
+}
+
+function normalizeText(value) {
+  if (value == null) {
+    return "";
+  }
+
+  return String(value).trim();
 }
 
 function escapeHtml(value) {
