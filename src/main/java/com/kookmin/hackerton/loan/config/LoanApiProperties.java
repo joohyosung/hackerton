@@ -9,8 +9,6 @@ public class LoanApiProperties {
     private String path = "/LoanProductSearchingInfo/getLoanProductSearchingInfo";
     private String serviceKey = "";
     private int pageSize = 100;
-    private boolean useSampleWhenUnavailable = true;
-    private String jsonPath = "data/loan-products.json";
 
     public String getEndpoint() {
         return endpoint;
@@ -42,21 +40,5 @@ public class LoanApiProperties {
 
     public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
-    }
-
-    public boolean isUseSampleWhenUnavailable() {
-        return useSampleWhenUnavailable;
-    }
-
-    public void setUseSampleWhenUnavailable(boolean useSampleWhenUnavailable) {
-        this.useSampleWhenUnavailable = useSampleWhenUnavailable;
-    }
-
-    public String getJsonPath() {
-        return jsonPath;
-    }
-
-    public void setJsonPath(String jsonPath) {
-        this.jsonPath = jsonPath;
     }
 }

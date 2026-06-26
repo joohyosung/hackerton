@@ -21,24 +21,18 @@ public class LoanProductService {
     private final LoanApiProperties properties;
     private final LoanPolicyProperties policyProperties;
     private final LoanApiClient loanApiClient;
-    private final LoanSampleDataProvider sampleDataProvider;
     private final LoanRecommendationScorer recommendationScorer;
-    private final LoanProductJsonRepository jsonRepository;
 
     public LoanProductService(
         LoanApiProperties properties,
         LoanPolicyProperties policyProperties,
         LoanApiClient loanApiClient,
-        LoanSampleDataProvider sampleDataProvider,
-        LoanRecommendationScorer recommendationScorer,
-        LoanProductJsonRepository jsonRepository
+        LoanRecommendationScorer recommendationScorer
     ) {
         this.properties = properties;
         this.policyProperties = policyProperties;
         this.loanApiClient = loanApiClient;
-        this.sampleDataProvider = sampleDataProvider;
         this.recommendationScorer = recommendationScorer;
-        this.jsonRepository = jsonRepository;
     }
     
     public List<LoanRecommendation> search(LoanSearchRequest request) {
@@ -77,14 +71,9 @@ public class LoanProductService {
     }
 
     private List<LoanProduct> loadProducts() {
-        List<LoanProduct> jsonProducts = jsonRepository.load(properties.getJsonPath());
-
-        if (!jsonProducts.isEmpty()) {
-            return jsonProducts;
-        }
-
         if (!StringUtils.hasText(properties.getServiceKey())) {
-            return sampleDataProvider.sampleProducts();
+            log.warn("Public API service key is missing.");
+            return Collections.emptyList();
         }
 
         try {
@@ -95,12 +84,11 @@ public class LoanProductService {
             }
 
             log.warn("Public API returned no loan products.");
+            return Collections.emptyList();
+
         } catch (Exception exception) {
             log.warn("Failed to load loan products from public API.", exception);
+            return Collections.emptyList();
         }
-
-        return properties.isUseSampleWhenUnavailable()
-                ? sampleDataProvider.sampleProducts()
-                : Collections.emptyList();
     }
 }

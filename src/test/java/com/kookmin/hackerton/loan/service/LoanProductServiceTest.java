@@ -8,22 +8,14 @@ import com.kookmin.hackerton.loan.model.LoanRecommendation;
 import com.kookmin.hackerton.loan.model.LoanSearchRequest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 class LoanProductServiceTest {
 
-    private LoanProductService createService() {
+    private LoanProductService createServiceWithoutApiKey() {
         LoanApiProperties apiProperties = new LoanApiProperties();
         apiProperties.setServiceKey("");
-        apiProperties.setUseSampleWhenUnavailable(true);
 
-        LoanPolicyProperties policyProperties = new LoanPolicyProperties();
-        policyProperties.setDsrLimit(40.0);
-        policyProperties.setDtiLimit(40.0);
-        policyProperties.setLtvLimit(70.0);
-        policyProperties.setFirstHomeBuyerLtvLimit(80.0);
-        policyProperties.setStressRateAddition(0.0);
-        policyProperties.setMinimumRecommendationScore(35);
+        LoanPolicyProperties policyProperties = defaultPolicy();
 
         LoanProductAnalyzer productAnalyzer = new LoanProductAnalyzer();
         LoanRatioCalculator ratioCalculator = new LoanRatioCalculator();
@@ -37,17 +29,23 @@ class LoanProductServiceTest {
                 productAnalyzer
         );
 
-        LoanProductJsonRepository jsonRepository =
-            new LoanProductJsonRepository(new ObjectMapper());
-
         return new LoanProductService(
                 apiProperties,
                 policyProperties,
                 loanApiClient,
-                new LoanSampleDataProvider(),
-                recommendationScorer,
-                jsonRepository
+                recommendationScorer
         );
+    }
+
+    private LoanPolicyProperties defaultPolicy() {
+        LoanPolicyProperties policyProperties = new LoanPolicyProperties();
+        policyProperties.setDsrLimit(40.0);
+        policyProperties.setDtiLimit(40.0);
+        policyProperties.setLtvLimit(70.0);
+        policyProperties.setFirstHomeBuyerLtvLimit(80.0);
+        policyProperties.setStressRateAddition(0.0);
+        policyProperties.setMinimumRecommendationScore(35);
+        return policyProperties;
     }
 
     private LoanSearchRequest basicRequest() {
@@ -73,160 +71,37 @@ class LoanProductServiceTest {
     }
 
     @Test
-    void search_returnsRecommendationsWhenApiKeyMissing() {
-        LoanProductService service = createService();
+    void search_returnsEmptyListWhenApiKeyMissing() {
+        LoanProductService service = createServiceWithoutApiKey();
 
         List<LoanRecommendation> result = service.search(basicRequest());
-
-        assertThat(result).isNotEmpty();
-    }
-
-    @Test
-    void search_returnsResultsSortedByScoreDescending() {
-        LoanProductService service = createService();
-
-        List<LoanRecommendation> result = service.search(basicRequest());
-
-        assertThat(result).isNotEmpty();
-
-        for (int i = 1; i < result.size(); i++) {
-            assertThat(result.get(i - 1).getScore())
-                    .isGreaterThanOrEqualTo(result.get(i).getScore());
-        }
-    }
-
-    @Test
-    void search_excludesRecommendationWhenDsrExceeded() {
-        LoanProductService service = createService();
-
-        LoanSearchRequest request = basicRequest();
-        request.setAnnualIncome(10_000_000L);
-        request.setLoanAmount(100_000_000L);
-        request.setExistingMonthlyDebtPayment(2_000_000L);
-
-        List<LoanRecommendation> result = service.search(request);
 
         assertThat(result).isEmpty();
     }
 
     @Test
-    void search_returnsDetailByIdFromRecommendation() {
-        LoanProductService service = createService();
-
-        List<LoanRecommendation> recommendations = service.search(basicRequest());
-
-        assertThat(recommendations).isNotEmpty();
-
-        String id = recommendations.get(0).getProduct().getId();
-
-        assertThat(service.findById(id)).isNotNull();
-    }
-
-    @Test
     void findById_returnsNullWhenIdIsBlank() {
-        LoanProductService service = createService();
+        LoanProductService service = createServiceWithoutApiKey();
 
         assertThat(service.findById("")).isNull();
         assertThat(service.findById(null)).isNull();
     }
 
     @Test
-    void search_returnsNoRecommendation_whenDsrLimitIsVeryLow() {
-
-        LoanApiProperties apiProperties = new LoanApiProperties();
-        apiProperties.setServiceKey("");
-        apiProperties.setUseSampleWhenUnavailable(true);
-
-        LoanPolicyProperties policy = new LoanPolicyProperties();
-        policy.setDsrLimit(1.0);
-        policy.setDtiLimit(40.0);
-        policy.setLtvLimit(70.0);
-        policy.setFirstHomeBuyerLtvLimit(80.0);
-        policy.setMinimumRecommendationScore(35);
-
-        LoanProductAnalyzer analyzer = new LoanProductAnalyzer();
-        LoanRatioCalculator calculator = new LoanRatioCalculator();
-
-        LoanRecommendationScorer scorer =
-                new LoanRecommendationScorer(policy, calculator, analyzer);
-
-        LoanApiClient apiClient =
-                new LoanApiClient(apiProperties, new LoanProductXmlParser());
-
-        LoanProductService service =
-                new LoanProductService(
-                        apiProperties,
-                        policy,
-                        apiClient,
-                        new LoanSampleDataProvider(),
-                        scorer,
-                        new LoanProductJsonRepository(new ObjectMapper())
-                );
-
-        List<LoanRecommendation> result =
-                service.search(basicRequest());
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void search_returnsNoRecommendation_whenMinimumScoreIsTooHigh() {
-
-        LoanApiProperties apiProperties = new LoanApiProperties();
-        apiProperties.setServiceKey("");
-        apiProperties.setUseSampleWhenUnavailable(true);
-
-        LoanPolicyProperties policy = new LoanPolicyProperties();
-        policy.setDsrLimit(40.0);
-        policy.setDtiLimit(40.0);
-        policy.setLtvLimit(70.0);
-        policy.setFirstHomeBuyerLtvLimit(80.0);
-        policy.setMinimumRecommendationScore(90);
-
-        LoanProductAnalyzer analyzer = new LoanProductAnalyzer();
-        LoanRatioCalculator calculator = new LoanRatioCalculator();
-
-        LoanRecommendationScorer scorer =
-                new LoanRecommendationScorer(policy, calculator, analyzer);
-
-        LoanApiClient apiClient =
-                new LoanApiClient(apiProperties, new LoanProductXmlParser());
-
-        LoanProductService service =
-                new LoanProductService(
-                        apiProperties,
-                        policy,
-                        apiClient,
-                        new LoanSampleDataProvider(),
-                        scorer,
-                        new LoanProductJsonRepository(new ObjectMapper())
-                );
-
-        List<LoanRecommendation> result =
-                service.search(basicRequest());
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     void firstHomeBuyerPolicy_canBeChanged() {
-
         LoanPolicyProperties policy = new LoanPolicyProperties();
 
         policy.setFirstHomeBuyerLtvLimit(85.0);
 
-        assertThat(policy.getFirstHomeBuyerLtvLimit())
-                .isEqualTo(85.0);
+        assertThat(policy.getFirstHomeBuyerLtvLimit()).isEqualTo(85.0);
     }
 
     @Test
     void stressRate_canBeConfigured() {
-
         LoanPolicyProperties policy = new LoanPolicyProperties();
 
         policy.setStressRateAddition(1.5);
 
-        assertThat(policy.getStressRateAddition())
-                .isEqualTo(1.5);
+        assertThat(policy.getStressRateAddition()).isEqualTo(1.5);
     }
 }
