@@ -100,100 +100,98 @@
                         </select>
                     </label>
                 </div>
+                
+                <details class="advanced-options">
+                    <summary>상세 조건 입력</summary>
 
-                <div class="form-section">
-                    <div class="section-label">상환 조건</div>
+                    <div class="advanced-grid">
+                        <label>
+                            <span>상환기간</span>
+                            <div class="with-unit">
+                                <input id="desiredLoanTermYears" name="desiredLoanTermYears" type="number" min="1" max="40" value="5">
+                                <em>년</em>
+                            </div>
+                        </label>
 
-                    <label>
-                        <span>상환기간</span>
-                        <div class="with-unit">
-                            <input id="desiredLoanTermYears" name="desiredLoanTermYears" type="number" min="1" max="40" value="5">
-                            <em>년</em>
-                        </div>
-                    </label>
+                        <label>
+                            <span>예상 금리</span>
+                            <div class="with-unit">
+                                <input id="expectedInterestRate" name="expectedInterestRate" type="number" min="0" max="30" step="0.1" value="5.0">
+                                <em>%</em>
+                            </div>
+                        </label>
 
-                    <label>
-                        <span>예상 금리</span>
-                        <div class="with-unit">
-                            <input id="expectedInterestRate" name="expectedInterestRate" type="number" min="0" max="30" step="0.1" value="5.0">
-                            <em>%</em>
-                        </div>
-                    </label>
+                        <label>
+                            <span>기존 대출 월 상환액 합계</span>
+                            <div class="with-unit">
+                                <input id="existingMonthlyDebtPayment" name="existingMonthlyDebtPayment" type="number" min="0" value="0">
+                                <em>만원</em>
+                            </div>
+                        </label>
 
-                    <label>
-                        <span>기존 대출 월 상환액 합계</span>
-                        <div class="with-unit">
-                            <input id="existingMonthlyDebtPayment" name="existingMonthlyDebtPayment" type="number" min="0" value="0">
-                            <em>만원</em>
-                        </div>
-                    </label>
+                        <label>
+                            <span>기존 기타대출 연간 이자액</span>
+                            <div class="with-unit">
+                                <input id="existingAnnualDebtInterest" name="existingAnnualDebtInterest" type="number" min="0" value="0">
+                                <em>만원</em>
+                            </div>
+                        </label>
 
-                    <label>
-                        <span>기존 기타대출 연간 이자액</span>
-                        <div class="with-unit">
-                            <input id="existingAnnualDebtInterest" name="existingAnnualDebtInterest" type="number" min="0" value="0">
-                            <em>만원</em>
-                        </div>
-                    </label>
-                </div>
+                        <label class="checkbox-label wide">
+                            <input id="mortgageLoan" name="mortgageLoan" type="checkbox">
+                            <span>담보대출 또는 주거 목적 대출</span>
+                        </label>
 
-                <div class="form-section form-section-housing">
-                    <div class="section-label">주거·담보 조건</div>
+                        <label>
+                            <span>담보가치</span>
+                            <div class="with-unit">
+                                <input id="collateralValue" name="collateralValue" type="number" min="0" value="0">
+                                <em>만원</em>
+                            </div>
+                        </label>
 
-                    <label>
-                        <span>주택 보유 수</span>
-                        <select id="houseCount" name="houseCount">
-                            <option value="0" selected>무주택</option>
-                            <option value="1">1주택</option>
-                            <option value="2">2주택 이상</option>
-                        </select>
-                    </label>
+                        <label>
+                            <span>기존 주담대 잔액</span>
+                            <div class="with-unit">
+                                <input id="existingMortgageBalance" name="existingMortgageBalance" type="number" min="0" value="0">
+                                <em>만원</em>
+                            </div>
+                        </label>
 
-                    <label>
-                        <span>주택 면적</span>
-                        <div class="with-unit">
-                            <input id="houseArea" name="houseArea" type="number" min="0" value="0">
-                            <em>㎡</em>
-                        </div>
-                    </label>
+                        <label>
+                            <span>선순위 보증금</span>
+                            <div class="with-unit">
+                                <input id="seniorDeposit" name="seniorDeposit" type="number" min="0" value="0">
+                                <em>만원</em>
+                            </div>
+                        </label>
 
-                    <label class="checkbox-label wide">
-                        <input id="mortgageLoan" name="mortgageLoan" type="checkbox">
-                        <span>담보대출 또는 주거 목적 대출</span>
-                    </label>
+                        <label>
+                            <span>주택 보유 수</span>
+                            <select id="houseCount" name="houseCount">
+                                <option value="0" selected>무주택</option>
+                                <option value="1">1주택</option>
+                                <option value="2">2주택 이상</option>
+                            </select>
+                        </label>
 
-                    <label>
-                        <span>담보가치</span>
-                        <div class="with-unit">
-                            <input id="collateralValue" name="collateralValue" type="number" min="0" value="0">
-                            <em>만원</em>
-                        </div>
-                    </label>
+                        <label>
+                            <span>주택 면적</span>
+                            <div class="with-unit">
+                                <input id="houseArea" name="houseArea" type="number" min="0" value="0">
+                                <em>㎡</em>
+                            </div>
+                        </label>
 
-                    <label>
-                        <span>기존 주담대 잔액</span>
-                        <div class="with-unit">
-                            <input id="existingMortgageBalance" name="existingMortgageBalance" type="number" min="0" value="0">
-                            <em>만원</em>
-                        </div>
-                    </label>
-
-                    <label>
-                        <span>선순위 보증금</span>
-                        <div class="with-unit">
-                            <input id="seniorDeposit" name="seniorDeposit" type="number" min="0" value="0">
-                            <em>만원</em>
-                        </div>
-                    </label>
-
-                    <label>
-                        <span>생애최초 여부</span>
-                        <select id="firstHomeBuyer" name="firstHomeBuyer">
-                            <option value="false" selected>아니오</option>
-                            <option value="true">예</option>
-                        </select>
-                    </label>
-                </div>
+                        <label>
+                            <span>생애최초 여부</span>
+                            <select id="firstHomeBuyer" name="firstHomeBuyer">
+                                <option value="false" selected>아니오</option>
+                                <option value="true">예</option>
+                            </select>
+                        </label>
+                    </div>
+                </details>
 
                 <button type="submit" class="primary-action">
                     <span class="button-icon" aria-hidden="true">⌕</span>

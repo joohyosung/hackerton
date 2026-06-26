@@ -713,3 +713,39 @@ button:focus-visible {
         padding: 12px;
     }
 }
+
+.advanced-options {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fafafa;
+}
+
+.advanced-options summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: #374151;
+}
+
+.advanced-options summary::marker {
+    color: #6b7280;
+}
+
+.advanced-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.advanced-grid .wide {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    .advanced-grid {
+        grid-template-columns: 1fr;
+    }
+}

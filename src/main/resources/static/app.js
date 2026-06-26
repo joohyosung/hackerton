@@ -54,17 +54,17 @@ async function searchLoans() {
     region: textValue("region"),
     purpose: textValue("purpose"),
 
-    existingMonthlyDebtPayment: toWon(numberValue("existingMonthlyDebtPayment")),
-    existingAnnualDebtInterest: toWon(numberValue("existingAnnualDebtInterest")),
-    desiredLoanTermYears: numberValue("desiredLoanTermYears"),
-    expectedInterestRate: numberValue("expectedInterestRate"),
+    existingMonthlyDebtPayment: toWon(numberValueOrDefault("existingMonthlyDebtPayment", 0)),
+    existingAnnualDebtInterest: toWon(numberValueOrDefault("existingAnnualDebtInterest", 0)),
+    desiredLoanTermYears: numberValueOrDefault("desiredLoanTermYears", 5),
+    expectedInterestRate: numberValueOrDefault("expectedInterestRate", 5.0),
 
     mortgageLoan: checkedValue("mortgageLoan"),
-    collateralValue: toWon(numberValue("collateralValue")),
-    existingMortgageBalance: toWon(numberValue("existingMortgageBalance")),
-    seniorDeposit: toWon(numberValue("seniorDeposit")),
-    houseCount: numberValue("houseCount"),
-    houseArea: numberValue("houseArea"),
+    collateralValue: toWon(numberValueOrDefault("collateralValue", 0)),
+    existingMortgageBalance: toWon(numberValueOrDefault("existingMortgageBalance", 0)),
+    seniorDeposit: toWon(numberValueOrDefault("seniorDeposit", 0)),
+    houseCount: numberValueOrDefault("houseCount", 0),
+    houseArea: numberValueOrDefault("houseArea", 0),
     firstHomeBuyer: booleanValue("firstHomeBuyer"),
   };
 
@@ -88,6 +88,16 @@ async function searchLoans() {
   } finally {
     setLoading(false);
   }
+}
+
+function numberValueOrDefault(id, defaultValue) {
+  const element = document.querySelector(`#${id}`);
+
+  if (!element || element.value === "") {
+    return defaultValue;
+  }
+
+  return Number(element.value);
 }
 
 function renderResults(items) {

@@ -61,18 +61,7 @@ class LoanControllerTest {
                 + "\"creditGrade\":5,"
                 + "\"loanAmount\":10000000,"
                 + "\"region\":\"전국\","
-                + "\"purpose\":\"생계\","
-                + "\"existingMonthlyDebtPayment\":0,"
-                + "\"existingAnnualDebtInterest\":0,"
-                + "\"desiredLoanTermYears\":5,"
-                + "\"expectedInterestRate\":5.0,"
-                + "\"mortgageLoan\":false,"
-                + "\"collateralValue\":0,"
-                + "\"existingMortgageBalance\":0,"
-                + "\"seniorDeposit\":0,"
-                + "\"houseCount\":0,"
-                + "\"houseArea\":0.0,"
-                + "\"firstHomeBuyer\":false"
+                + "\"purpose\":\"생계\""
                 + "}";
     }
 
@@ -83,11 +72,7 @@ class LoanControllerTest {
                 + "\"creditGrade\":20,"
                 + "\"loanAmount\":-10000000,"
                 + "\"region\":\"\","
-                + "\"purpose\":\"\","
-                + "\"desiredLoanTermYears\":0,"
-                + "\"expectedInterestRate\":50.0,"
-                + "\"houseCount\":5,"
-                + "\"houseArea\":-1.0"
+                + "\"purpose\":\"\""
                 + "}";
     }
 }

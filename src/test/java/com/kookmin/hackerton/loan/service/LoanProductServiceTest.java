@@ -56,19 +56,8 @@ class LoanProductServiceTest {
         request.setLoanAmount(10_000_000L);
         request.setRegion("전국");
         request.setPurpose("생계");
-        request.setDesiredLoanTermYears(5);
-        request.setExpectedInterestRate(5.0);
-        request.setExistingMonthlyDebtPayment(0L);
-        request.setExistingAnnualDebtInterest(0L);
-        request.setMortgageLoan(false);
-        request.setCollateralValue(0L);
-        request.setExistingMortgageBalance(0L);
-        request.setSeniorDeposit(0L);
-        request.setHouseCount(0);
-        request.setHouseArea(0.0);
-        request.setFirstHomeBuyer(false);
         return request;
-    }
+}
 
     @Test
     void search_returnsEmptyListWhenApiKeyMissing() {
