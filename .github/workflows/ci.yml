@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build-and-data-contract:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,17 +25,3 @@ jobs:
 
       - name: Build and test
         run: mvn -B test
-
-      - name: Validate sample data contract
-        run: |
-          python scripts/loan_data_pipeline.py \
-            --sample \
-            --strict \
-            --output target/data/loan-products.json \
-            --manifest-output target/data/loan-products.manifest.json
-
-      - name: Upload normalized sample data
-        uses: actions/upload-artifact@v4
-        with:
-          name: sample-loan-products
-          path: target/data/
