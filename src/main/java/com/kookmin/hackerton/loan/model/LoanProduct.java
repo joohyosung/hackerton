@@ -62,8 +62,8 @@ public class LoanProduct {
     private String loanAdditionalCost;
 
     private String repaymentMethod;
-    private String repaymentTermYears;  
-    private String totalLoanTermYears;  
+    private String repaymentTermYears;
+    private String totalLoanTermYears;
 
     public String getId() {
         return id;
@@ -227,7 +227,7 @@ public class LoanProduct {
     }
 
     public String getAnnualIncomeText() {
-    return annualIncomeText;
+        return annualIncomeText;
     }
 
     public void setAnnualIncomeText(String annualIncomeText) {

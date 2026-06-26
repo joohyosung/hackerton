@@ -49,23 +49,11 @@ async function searchLoans() {
   const payload = {
     age: numberValue("age"),
     annualIncome: toWon(numberValue("annualIncome")),
-    creditGrade: numberValue("creditGrade"),
     loanAmount: toWon(numberValue("loanAmount")),
     region: textValue("region"),
     purpose: textValue("purpose"),
-
-    existingMonthlyDebtPayment: toWon(numberValueOrDefault("existingMonthlyDebtPayment", 0)),
-    existingAnnualDebtInterest: toWon(numberValueOrDefault("existingAnnualDebtInterest", 0)),
-    desiredLoanTermYears: numberValueOrDefault("desiredLoanTermYears", 5),
-    expectedInterestRate: numberValueOrDefault("expectedInterestRate", 5.0),
-
-    mortgageLoan: checkedValue("mortgageLoan"),
-    collateralValue: toWon(numberValueOrDefault("collateralValue", 0)),
-    existingMortgageBalance: toWon(numberValueOrDefault("existingMortgageBalance", 0)),
-    seniorDeposit: toWon(numberValueOrDefault("seniorDeposit", 0)),
-    houseCount: numberValueOrDefault("houseCount", 0),
-    houseArea: numberValueOrDefault("houseArea", 0),
-    firstHomeBuyer: booleanValue("firstHomeBuyer"),
+    creditGrade: numberValue("creditGrade"),
+    userType: textValue("userType"),
   };
 
   try {
@@ -88,16 +76,6 @@ async function searchLoans() {
   } finally {
     setLoading(false);
   }
-}
-
-function numberValueOrDefault(id, defaultValue) {
-  const element = document.querySelector(`#${id}`);
-
-  if (!element || element.value === "") {
-    return defaultValue;
-  }
-
-  return Number(element.value);
 }
 
 function renderResults(items) {
@@ -151,7 +129,7 @@ function createResultCard(item, rank) {
         <span>${escapeHtml(product.limitText || product.lnLmt || "한도 확인")}</span>
         <span>${escapeHtml(product.rateText || product.irt || "금리 확인")}</span>
         <span>${escapeHtml(product.region || product.rsdArea || "지역 확인")}</span>
-        ${ratioBadges(item.affordability)}
+        ${statusBadges(item)}
       </span>
     </span>
   `;
@@ -228,7 +206,6 @@ function getVisiblePages(totalPages) {
 
 function openModal(item) {
   const product = item.product || {};
-  const affordability = item.affordability || {};
 
   lastFocusedElement = document.activeElement;
   modalTitle.textContent = productName(product);
@@ -249,39 +226,25 @@ function openModal(item) {
     ["신청방법", product.applicationMethod || product.jnMthd],
     ["문의처", product.contact || product.rfrcCnpl],
     ["보증기관", product.guaranteeInstitution || product.grnInst],
-    ["예상 월상환액", formatWon(affordability.estimatedMonthlyPayment)],
-    ["DSR", ratioText(affordability.dsr, affordability.dsrLimit)],
-    ["DTI", affordability.mortgageEvaluationUsed ? ratioText(affordability.dti, affordability.dtiLimit) : "비담보대출 계산 제외"],
-    ["LTV", affordability.mortgageEvaluationUsed ? ratioText(affordability.ltv, affordability.ltvLimit) : "비담보대출 계산 제외"],
-    ["계산 기준 금리", affordability.calculationRate == null ? "" : `${percentText(affordability.calculationRate)} 적용`],
-    ["계산 기준 기간", affordability.calculationTermYears ? `${affordability.calculationTermYears}년` : ""],
-    ["계산상 가능 한도", formatWon(affordability.finalPossibleLoanAmount)],
     ["관련 사이트", product.relatedSite || product.sourceUrl || product.rltSite],
     ["기타 참고사항", product.extraNotes || product.etcRefSbjc || product.kinfaPrdEtc],
   ];
 
   detailRows.forEach(([label, value]) => appendDetailRow(label, value));
   appendNotes("추천 사유", item.reasons);
-  appendNotes("경고 메시지", [...(item.warnings || []), ...((affordability && affordability.warnings) || [])]);
+  appendNotes("확인 필요", uniqueNotes([...(item.warnings || []), ...((item.affordability && item.affordability.warnings) || [])]));
 
   const notice = document.createElement("section");
   notice.className = "modal-finance-notice";
 
   notice.innerHTML = `
-      <h3>금융 계산 안내</h3>
-      <p class="ratio-reference">
-        <span>DSR 기준 40%</span>
-        <span>DTI 기준 40%</span>
-        <span>LTV 기준 70%</span>
-        <span>생애최초 LTV 80%</span>
+      <h3>추천 기준 안내</h3>
+      <p>
+          추천 점수는 공공데이터 API의 한도, 용도, 대상, 지역, 연령, 소득,
+          신용 조건을 비교한 <strong>참고용 적합도</strong>입니다.
       </p>
       <p>
-          DSR, DTI, LTV 및 예상 월상환액은
-          입력한 정보를 기반으로 계산한 <strong>참고용 추정치</strong>입니다.
-      </p>
-      <p>
-          실제 대출 가능 여부와 한도는
-          금융기관의 심사 결과에 따라 달라질 수 있습니다.
+          실제 대출 가능 여부와 한도는 금융기관의 심사 결과에 따라 달라질 수 있습니다.
       </p>
   `;
 
@@ -341,23 +304,14 @@ function setLoading(isLoading) {
   button.querySelector("span:last-child").textContent = isLoading ? "검색 중" : "검색";
 }
 
-function ratioBadges(affordability) {
-  if (!affordability) {
-    return "";
+function statusBadges(item) {
+  const warnings = uniqueNotes([...(item.warnings || []), ...((item.affordability && item.affordability.warnings) || [])]);
+
+  if (!warnings.length) {
+    return `<span>조건 매칭</span>`;
   }
 
-  const badges = [`<span>DSR ${escapeHtml(percentText(affordability.dsr))}</span>`];
-
-  if (affordability.mortgageEvaluationUsed) {
-    badges.push(`<span>DTI ${escapeHtml(percentText(affordability.dti))}</span>`);
-    badges.push(`<span>LTV ${escapeHtml(percentText(affordability.ltv))}</span>`);
-  }
-
-  if (affordability.estimatedMonthlyPayment) {
-    badges.push(`<span>월 ${escapeHtml(formatWon(affordability.estimatedMonthlyPayment))}</span>`);
-  }
-
-  return badges.join("");
+  return `<span>확인 ${warnings.length}건</span>`;
 }
 
 function getTotalPages() {
@@ -375,30 +329,6 @@ function numberValue(id) {
 
 function textValue(id) {
   return document.querySelector(`#${id}`).value.trim();
-}
-
-function checkedValue(id) {
-  return document.querySelector(`#${id}`).checked;
-}
-
-function booleanValue(id) {
-  return document.querySelector(`#${id}`).value === "true";
-}
-
-function ratioText(value, limit) {
-  if (value == null) {
-    return "";
-  }
-
-  return `${percentText(value)} / 기준 ${percentText(limit)}`;
-}
-
-function percentText(value) {
-  if (value == null || Number.isNaN(Number(value))) {
-    return "확인 필요";
-  }
-
-  return `${Number(value).toFixed(1)}%`;
 }
 
 function toWon(manwon) {
@@ -433,6 +363,10 @@ function normalizeText(value) {
   }
 
   return String(value).trim();
+}
+
+function uniqueNotes(notes) {
+  return [...new Set((notes || []).filter(Boolean))];
 }
 
 function escapeHtml(value) {

@@ -29,6 +29,8 @@ class LoanProductParsingTest {
         assertThat(product.getPurpose()).isEqualTo("생계");
         assertThat(product.getRegion()).isEqualTo("전국");
         assertThat(product.getTarget()).isEqualTo("저소득 근로자");
+        assertThat(product.getInstitutionCategory()).isEqualTo("공공기관");
+        assertThat(product.getProductCategory()).isEqualTo("생계자금");
     }
 
     @Test
@@ -60,6 +62,14 @@ class LoanProductParsingTest {
     }
 
     @Test
+    void parseProducts_treatsNumericLoanLimitAsManwon() throws Exception {
+        List<LoanProduct> products = parser.parseProducts(numericLimitXml());
+
+        assertThat(products.get(0).getLimitText()).isEqualTo("5000");
+        assertThat(products.get(0).getLimitAmount()).isEqualTo(50_000_000L);
+    }
+
+    @Test
     void parseProducts_generatesProductIds() throws Exception {
         List<LoanProduct> products = parser.parseProducts(publicApiXml());
 
@@ -85,6 +95,8 @@ class LoanProductParsingTest {
                 + "<trgt>저소득 근로자</trgt>"
                 + "<suprTgtDtlCond>저소득 근로자</suprTgtDtlCond>"
                 + "<rsdArea>전국</rsdArea>"
+                + "<instCtg>공공기관</instCtg>"
+                + "<prdCtg>생계자금</prdCtg>"
                 + "<anin>4,500만원</anin>"
                 + "<crdtSc_6_0>Y</crdtSc_6_0>"
                 + "</item>"
@@ -105,6 +117,21 @@ class LoanProductParsingTest {
                 + "<housHoldCnt>무주택</housHoldCnt>"
                 + "</item>"
                 + "</items><totalCount>2</totalCount></body>"
+                + "</response>";
+    }
+
+    private String numericLimitXml() {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                + "<response>"
+                + "<body><items>"
+                + "<item>"
+                + "<finPrdNm>숫자 한도 상품</finPrdNm>"
+                + "<hdlInst>테스트 기관</hdlInst>"
+                + "<lnlmt>5000</lnlmt>"
+                + "<usge>생계</usge>"
+                + "<rsdAreaPamtEqltIstm>전국</rsdAreaPamtEqltIstm>"
+                + "</item>"
+                + "</items></body>"
                 + "</response>";
     }
 }

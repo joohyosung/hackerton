@@ -168,7 +168,7 @@ h2 {
 
 .form-section {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 14px;
     padding: 16px;
     border: 1px solid var(--line);
@@ -184,6 +184,34 @@ h2 {
     background: var(--surface-tint);
 }
 
+.advanced-options {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.advanced-options summary {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 16px;
+    color: var(--body);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.advanced-options summary::marker {
+    color: var(--primary);
+}
+
+.advanced-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 0 16px 16px;
+}
+
 .section-label {
     grid-column: 1 / -1;
     color: var(--ink);
@@ -191,13 +219,15 @@ h2 {
     font-weight: 900;
 }
 
-.loan-form label {
+.loan-form label,
+.advanced-grid label {
     display: grid;
     gap: 7px;
     min-width: 0;
 }
 
 .loan-form label > span,
+.advanced-grid label > span,
 .detail-list dt {
     color: var(--body);
     font-size: 13px;
@@ -681,6 +711,7 @@ button:focus-visible {
     }
 
     .form-section,
+    .advanced-grid,
     .detail-list {
         grid-template-columns: 1fr;
     }
@@ -711,41 +742,5 @@ button:focus-visible {
 
     .modal-overlay {
         padding: 12px;
-    }
-}
-
-.advanced-options {
-    grid-column: 1 / -1;
-    margin-top: 8px;
-    padding: 14px 16px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    background: #fafafa;
-}
-
-.advanced-options summary {
-    cursor: pointer;
-    font-weight: 700;
-    color: #374151;
-}
-
-.advanced-options summary::marker {
-    color: #6b7280;
-}
-
-.advanced-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    margin-top: 16px;
-}
-
-.advanced-grid .wide {
-    grid-column: 1 / -1;
-}
-
-@media (max-width: 768px) {
-    .advanced-grid {
-        grid-template-columns: 1fr;
     }
 }

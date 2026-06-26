@@ -1,13 +1,12 @@
 package com.kookmin.hackerton.loan.service;
 
 import com.kookmin.hackerton.loan.config.LoanApiProperties;
+import com.kookmin.hackerton.loan.config.LoanPolicyProperties;
 import com.kookmin.hackerton.loan.model.LoanProduct;
 import com.kookmin.hackerton.loan.model.LoanRecommendation;
 import com.kookmin.hackerton.loan.model.LoanSearchRequest;
-import com.kookmin.hackerton.loan.config.LoanPolicyProperties;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,28 +17,30 @@ import org.springframework.util.StringUtils;
 public class LoanProductService {
 
     private static final Logger log = LoggerFactory.getLogger(LoanProductService.class);
+
     private final LoanApiProperties properties;
     private final LoanPolicyProperties policyProperties;
     private final LoanApiClient loanApiClient;
     private final LoanRecommendationScorer recommendationScorer;
 
     public LoanProductService(
-        LoanApiProperties properties,
-        LoanPolicyProperties policyProperties,
-        LoanApiClient loanApiClient,
-        LoanRecommendationScorer recommendationScorer
+            LoanApiProperties properties,
+            LoanPolicyProperties policyProperties,
+            LoanApiClient loanApiClient,
+            LoanRecommendationScorer recommendationScorer
     ) {
         this.properties = properties;
         this.policyProperties = policyProperties;
         this.loanApiClient = loanApiClient;
         this.recommendationScorer = recommendationScorer;
     }
-    
+
     public List<LoanRecommendation> search(LoanSearchRequest request) {
+        LoanSearchRequest safeRequest = request == null ? new LoanSearchRequest() : request;
         List<LoanRecommendation> recommendations = new ArrayList<LoanRecommendation>();
 
         for (LoanProduct product : loadProducts()) {
-            LoanRecommendation recommendation = recommendationScorer.score(product, request);
+            LoanRecommendation recommendation = recommendationScorer.score(product, safeRequest);
 
             if (isRecommendable(recommendation)) {
                 recommendations.add(recommendation);
@@ -47,13 +48,7 @@ public class LoanProductService {
         }
 
         recommendations.sort((left, right) -> Integer.compare(right.getScore(), left.getScore()));
-
         return recommendations;
-    }
-
-    private boolean isRecommendable(LoanRecommendation recommendation) {
-        return recommendation.isEligible()
-                && recommendation.getScore() >= policyProperties.getMinimumRecommendationScore();
     }
 
     public LoanProduct findById(String id) {
@@ -68,6 +63,11 @@ public class LoanProductService {
         }
 
         return null;
+    }
+
+    private boolean isRecommendable(LoanRecommendation recommendation) {
+        return recommendation.isEligible()
+                && recommendation.getScore() >= policyProperties.getMinimumRecommendationScore();
     }
 
     private List<LoanProduct> loadProducts() {
@@ -85,7 +85,6 @@ public class LoanProductService {
 
             log.warn("Public API returned no loan products.");
             return Collections.emptyList();
-
         } catch (Exception exception) {
             log.warn("Failed to load loan products from public API.", exception);
             return Collections.emptyList();

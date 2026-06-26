@@ -52,17 +52,27 @@ public class LoanProductXmlParser {
 
     private LoanProduct toProduct(Element item, int index) {
         LoanProduct product = new LoanProduct();
-        product.setName(firstText(item, "finPrdNm", "loanProductName", "productName", "상품명"));
-        product.setInstitution(firstText(item, "hdlInst", "ofrInstNm", "hdlInstDtlVw", "instNm", "institution", "취급기관"));
-        product.setLimitText(firstText(item, "lnLmt", "loanLimit", "limit", "대출한도"));
-        product.setRateType(firstText(item, "irtCtg", "rateType", "금리구분"));
+        product.setName(firstText(item, "finprdnm", "finPrdNm", "loanProductName", "productName", "상품명"));
+        product.setInstitution(firstText(item, "hdlinst", "ofrinstnm", "hdlInst", "hdlInstDtlVw", "institution", "취급기관"));
+        product.setLimitText(firstText(item, "lnlmt", "lnLmt", "loanLimit", "limit", "대출한도"));
+        product.setRateType(firstText(item, "irtctg", "irtCtg", "rateType", "금리구분"));
         product.setRateText(firstText(item, "irt", "interestRate", "rate", "금리"));
         product.setPurpose(firstText(item, "usge", "loanUse", "purpose", "자금용도"));
-        product.setPeriodText(firstText(item, "maxTotLnTrm", "loanPeriod", "period", "총대출기간"));
-        product.setTarget(firstText(item, "trgt", "suprTgtDtlCond", "tgtFltr", "target", "지원대상"));
-        product.setRegion(firstText(item, "rsdArea", "rsdAreaPamtEqltIstm", "rgn", "region", "area", "지역"));
+        product.setPeriodText(firstText(item, "maxTotLnTrm", "maxtotlntrm", "loanPeriod", "period", "총대출기간"));
+        product.setTarget(firstText(item, "trgt", "tgtFltr", "suprTgtDtlCond", "suprtgtdtlcond", "target", "지원대상"));
+        product.setRegion(firstText(item, "rsdAreaPamtEqltIstm", "rsdarea", "rsdArea", "region", "area", "지역"));
+        product.setInstitutionCategory(firstText(item, "instCtg", "instctg"));
+        product.setProductCategory(firstText(item, "prdCtg", "prdctg"));
         product.setSummary(summaryText(item));
         product.setSourceUrl(firstText(item, "rltSite", "url", "homepage", "link"));
+        product.setRelatedSite(firstText(item, "rltSite", "rltSite", "url", "homepage", "link"));
+        product.setApplicationMethod(firstText(item, "jnMthd", "jnmthd"));
+        product.setContact(firstText(item, "rfrcCnpl", "cnpl", "rfrccnpl"));
+        product.setGuaranteeInstitution(firstText(item, "grnInst", "grninst"));
+        product.setExtraNotes(firstText(item, "etcRefSbjc", "kinfaPrdEtc", "etcrefsbjc", "kinfaprdetc"));
+        product.setRepaymentMethod(firstText(item, "rdptMthd", "rdptmthd"));
+        product.setRepaymentTermYears(firstText(item, "maxRdptTrm", "maxrdpttrm"));
+        product.setTotalLoanTermYears(firstText(item, "maxTotLnTrm", "maxtotlntrm"));
         product.setLimitAmount(parseMoney(product.getLimitText()));
         product.setMinAge(inferMinAge(item));
         product.setMaxAge(inferMaxAge(item));
@@ -241,6 +251,10 @@ public class LoanProductXmlParser {
         }
 
         String normalized = text.replace(",", "").replace(" ", "");
+        if (normalized.matches("\\d+")) {
+            return Long.parseLong(normalized) * 10000L;
+        }
+
         Pattern pattern = Pattern.compile("(\\d+(?:\\.\\d+)?)(억|천만|백만|만원|원)?");
         Matcher matcher = pattern.matcher(normalized);
         Long largest = null;

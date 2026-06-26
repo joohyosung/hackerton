@@ -41,4 +41,5 @@ public class LoanApiProperties {
     public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
     }
+
 }

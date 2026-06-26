@@ -48,7 +48,6 @@ class LoanControllerTest {
                 .andExpect(jsonPath("$.errors").exists())
                 .andExpect(jsonPath("$.errors", hasKey("age")))
                 .andExpect(jsonPath("$.errors", hasKey("annualIncome")))
-                .andExpect(jsonPath("$.errors", hasKey("creditGrade")))
                 .andExpect(jsonPath("$.errors", hasKey("loanAmount")))
                 .andExpect(jsonPath("$.errors", hasKey("region")))
                 .andExpect(jsonPath("$.errors", hasKey("purpose")));
@@ -58,7 +57,6 @@ class LoanControllerTest {
         return "{"
                 + "\"age\":32,"
                 + "\"annualIncome\":32000000,"
-                + "\"creditGrade\":5,"
                 + "\"loanAmount\":10000000,"
                 + "\"region\":\"전국\","
                 + "\"purpose\":\"생계\""
@@ -69,7 +67,6 @@ class LoanControllerTest {
         return "{"
                 + "\"age\":-10,"
                 + "\"annualIncome\":-1000000,"
-                + "\"creditGrade\":20,"
                 + "\"loanAmount\":-10000000,"
                 + "\"region\":\"\","
                 + "\"purpose\":\"\""

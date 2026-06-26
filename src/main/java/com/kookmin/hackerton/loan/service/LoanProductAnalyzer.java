@@ -1,11 +1,10 @@
 package com.kookmin.hackerton.loan.service;
 
 import com.kookmin.hackerton.loan.model.LoanProduct;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 public class LoanProductAnalyzer {
@@ -28,45 +27,6 @@ public class LoanProductAnalyzer {
         }
 
         return null;
-    }
-
-    public Double resolveCalculationRate(LoanProduct product, Double fallbackRate) {
-        Double productRate = parseMaxRate(product == null ? null : product.getRateText());
-
-        if (productRate != null && productRate > 0) {
-            return productRate;
-        }
-
-        if (fallbackRate != null && fallbackRate > 0) {
-            return fallbackRate;
-        }
-
-        return 5.0;
-    }
-
-    public Integer resolveCalculationTermYears(LoanProduct product, Integer fallbackYears) {
-        if (product != null) {
-            Integer repaymentTerm = parseYears(product.getRepaymentTermYears());
-            if (repaymentTerm != null && repaymentTerm > 0) {
-                return repaymentTerm;
-            }
-
-            Integer totalTerm = parseYears(product.getTotalLoanTermYears());
-            if (totalTerm != null && totalTerm > 0) {
-                return totalTerm;
-            }
-
-            Integer periodTextYears = parseYears(product.getPeriodText());
-            if (periodTextYears != null && periodTextYears > 0) {
-                return periodTextYears;
-            }
-        }
-
-        if (fallbackYears != null && fallbackYears > 0) {
-            return fallbackYears;
-        }
-
-        return 5;
     }
 
     public boolean isMortgageLikeProduct(LoanProduct product) {
@@ -150,52 +110,14 @@ public class LoanProductAnalyzer {
         Long maxIncome = product.getMaxAnnualIncome();
 
         if (maxIncome == null || maxIncome <= 0) {
-            maxIncome = parseKoreanMoney(join(product.getAnnualIncomeText(), product.getIncomeText(), product.getIncomeCondition()));
+            maxIncome = parseKoreanMoney(join(
+                    product.getAnnualIncomeText(),
+                    product.getIncomeText(),
+                    product.getIncomeCondition()
+            ));
         }
 
         return maxIncome == null || annualIncome <= maxIncome;
-    }
-
-    public boolean matchesHouseCount(LoanProduct product, Integer houseCount) {
-        if (product == null || houseCount == null) {
-            return true;
-        }
-
-        String condition = product.getHouseHoldCount();
-
-        if (!StringUtils.hasText(condition)) {
-            return true;
-        }
-
-        if (condition.contains("2주택")) {
-            return houseCount <= 2;
-        }
-
-        if (condition.contains("1주택")) {
-            return houseCount <= 1;
-        }
-
-        if (condition.contains("무주택")) {
-            return houseCount == 0;
-        }
-
-        return true;
-    }
-
-    public boolean matchesHouseArea(LoanProduct product, Double houseArea) {
-        if (product == null || houseArea == null || houseArea <= 0) {
-            return true;
-        }
-
-        String condition = product.getHouseArea();
-
-        if (!StringUtils.hasText(condition)) {
-            return true;
-        }
-
-        Double maxArea = parseMaxNumber(condition);
-
-        return maxArea == null || houseArea <= maxArea;
     }
 
     public Long parseKoreanMoney(String text) {
@@ -204,6 +126,9 @@ public class LoanProductAnalyzer {
         }
 
         String normalized = text.replace(",", "").replace(" ", "");
+        if (normalized.matches("\\d+")) {
+            return Long.parseLong(normalized) * 10000L;
+        }
 
         Matcher matcher = NUMBER_PATTERN.matcher(normalized);
         Long max = null;
@@ -217,10 +142,10 @@ public class LoanProductAnalyzer {
 
             if (tail.startsWith("억원") || tail.startsWith("억")) {
                 amount = Math.round(number * 100000000L);
-            } else if (tail.startsWith("만원") || tail.startsWith("만")) {
-                amount = Math.round(number * 10000L);
             } else if (tail.startsWith("천만원")) {
                 amount = Math.round(number * 10000000L);
+            } else if (tail.startsWith("만원") || tail.startsWith("만")) {
+                amount = Math.round(number * 10000L);
             } else {
                 amount = Math.round(number);
             }
@@ -234,42 +159,6 @@ public class LoanProductAnalyzer {
     }
 
     public Double parseMaxRate(String text) {
-        if (!StringUtils.hasText(text)) {
-            return null;
-        }
-
-        Matcher matcher = NUMBER_PATTERN.matcher(text);
-        Double max = null;
-
-        while (matcher.find()) {
-            double value = Double.parseDouble(matcher.group(1));
-            if (max == null || value > max) {
-                max = value;
-            }
-        }
-
-        return max;
-    }
-
-    public Integer parseYears(String text) {
-        if (!StringUtils.hasText(text)) {
-            return null;
-        }
-
-        Matcher matcher = NUMBER_PATTERN.matcher(text);
-        Integer max = null;
-
-        while (matcher.find()) {
-            int value = (int) Math.round(Double.parseDouble(matcher.group(1)));
-            if (max == null || value > max) {
-                max = value;
-            }
-        }
-
-        return max;
-    }
-
-    private Double parseMaxNumber(String text) {
         if (!StringUtils.hasText(text)) {
             return null;
         }
@@ -302,7 +191,15 @@ public class LoanProductAnalyzer {
     }
 
     private boolean isYes(String value) {
-        return "Y".equalsIgnoreCase(value) || "예".equals(value) || "true".equalsIgnoreCase(value);
+        return "Y".equalsIgnoreCase(value)
+                || "예".equals(value)
+                || "true".equalsIgnoreCase(value)
+                || "1".equals(value)
+                || "가능".equals(value)
+                || "대상".equals(value)
+                || "해당".equals(value)
+                || "○".equals(value)
+                || "o".equalsIgnoreCase(value);
     }
 
     private String join(String... values) {
